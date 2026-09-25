@@ -31,6 +31,12 @@ Jupiter masses is much rarer (17 targets; 4 with the dark-companion condition), 
 
 ## Verification
 
+Rebuild both lists from the archived intermediate data and compare byte by byte (needs the data directory of the project, see the repository README):
+
+`python -m gaia_wobble.make_lists out --reproduce release/v1`
+
+The lists were built from code commit `3e128b1`; later commits only touch documentation, licences, citation metadata and a CLI option.
+
 `sha256sum -c list1_substellar.csv.sha256 list2_planets.csv.sha256` must succeed. The code state is recorded in the header of every list.
 
 ## Licence

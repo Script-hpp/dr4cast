@@ -415,3 +415,15 @@ Die Intervalle von Modell A und den Baselines überlappen nicht (P@1000, Average
 | Modell A (LightGBM) | 0,966 | 0,0394 | 15 | 93 |
 
 Mit quadratischen Termen holt die logistische Regression einen großen Teil des Abstands zu Modell A auf (AUC 0,86 → 0,96, Treffer in den Top 1.000 von 0 auf 46 bis 61). Die Deutung „Fenster: auffällig, aber nicht zu stark“ wird damit gestützt; sie erklärt aber nicht den ganzen Abstand (Average Precision 0,025 gegen 0,039). Nur für den Bericht.
+
+## 2026-09-25 – Prüfung aus frischem Klon (vor dem Einfrieren)
+
+Frischer `git clone` von GitHub (Commit ed39967), `uv sync`, `pytest` (14 Tests bestanden, mit den vorhandenen Zwischendaten über `GAIA_DATA_DIR`), dann `python -m gaia_wobble.make_lists <ordner> --reproduce release/v1`. Ergebnis: Beide Listen sind **byte-identisch** mit `release/v1/` (`cmp`), die SHA-256-Summen stimmen (Liste 1 `8cb67a02…0256e`, Liste 2 `9a7130bd…7d05d`), ebenso die Prüfsummen der fünf Modelldateien, der Feature-Tabelle und der Amplituden-Tabelle. Der Reproduktionsmodus nimmt Datum, Code-Stand, Manifest-Version und Nachbartabelle aus `lists_manifest.json`.
+
+Beim Test aufgefallen und behoben: Die Nachbartabelle in `release/v1/` war durch `*.parquet` in der `.gitignore` nicht im Repo; ohne sie wäre die Liste nicht reproduzierbar gewesen. Jetzt versioniert (Ausnahme `!release/**/*.parquet`).
+
+Die Listen wurden aus dem Code-Stand 3e128b1 gebaut. Spätere Commits ändern nur README, Lizenz, Zitations- und Zenodo-Metadaten, den Einstieg `python -m gaia_wobble.calibration` und den Reproduktionsmodus von `make_lists.py`; die Logik der Listen ist unverändert, was der Test aus dem frischen Klon zeigt.
+
+Ausgelassen: eine Neuberechnung der ganzen Kette mit Downloads (Stunden). Die Zwischendaten (Features, Modelle) werden nur über ihre Prüfsummen in `lists_manifest.json` geprüft.
+
+Weitere Vorbereitungen für Zenodo: `CITATION.cff` und `.zenodo.json` (Titel, Autor, Schlagworte, Lizenz CC BY 4.0 für die Daten; der Code bleibt über `LICENSE` MIT). Ohne ORCID; falls vorhanden, eintragen. Die Konkurrenz-Listen liegen nicht im Repo (nur `download_competitors.py` und `docs/competitors.json` mit den Prüfsummen).
