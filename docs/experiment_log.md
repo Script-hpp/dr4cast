@@ -177,3 +177,45 @@ Aufbau (vor dem Lauf festgelegt, nicht getunt): LightGBM, 28 gemeinsame Merkmale
 - 82 % der Top 1000 haben in DR3 keine Bahnlösung. Ob sie Fehlalarme sind oder in DR3 nur knapp unter Gaias Auswahlschwelle lagen und in DR4 (66 statt 34 Monate) eine Lösung bekommen, kann der Backtest nicht klären.
 
 Grenzen: Genau ein Datensatz-Split; die Streuung zwischen den Folds ist groß (AP 0,034–0,061 je Region). Der Gesamt-AUC ist durch die Auswahl-Signale aufgebläht. SHAP-Auswertung, Vergleich mit den NASA-Label-Modellen B/B' und Feature-Ablationen stehen noch aus.
+
+## 2026-09-25 – Massentabelle ersetzt, Ablationen, SHAP, Beschleunigungs-Lösungen, Modelle B/B'
+
+**Massentabelle:** Die grobe Tabelle aus dem Gedächtnis ist ersetzt durch die Mittelwert-Hauptreihe von Mamajek (Version 2022.04.16, beruht auf Pecaut & Mamajek 2013; `src/gaia_wobble/data/mamajek_mg_mass.csv`, 72 Zeilen, absolute Gaia-G gegen Masse). Die alte Tabelle lag nahe daran (G2V 1,0 gegen 1,0; M0V 0,60 gegen 0,57; M5V 0,20 gegen 0,16). Features neu berechnet; die Zahlen des ersten Modell-A-Laufs (Eintrag oben) gelten damit als überholt, die Tabelle unten ersetzt sie. Es ist eine Zwergen-Hauptreihe: Riesen, Unterriesen und unaufgelöste Doppelsterne bekommen eine falsche Masse; `wobble_ratio` ist nur eine ungefähre Größenordnung.
+
+**Ablationen** (gleiches Protokoll, je ein Lauf, vor dem Start festgelegt; Population DR2 mit `parallax_over_error >= 10`, 1.304 Treffer unter 80 M_Jup):
+
+| Variante | Merkmale | P@30 | P@100 | P@1000 | AUC | AP | Recall@1 % | AP je Region (min–max) |
+|---|---|---|---|---|---|---|---|---|
+| full | 28 | 0,067 | 0,08 | 0,097 | 0,969 | 0,0434 | 54,5 % | 0,035–0,058 |
+| no_poe | 27 | 0,133 | 0,09 | 0,091 | 0,969 | 0,0424 | 55,4 % | 0,033–0,054 |
+| no_selection | 21 | 0,067 | 0,07 | 0,084 | 0,966 | 0,0370 | 51,5 % | 0,033–0,055 |
+| physics | 9 | 0,167 | 0,15 | 0,093 | 0,966 | 0,0394 | 52,2 % | 0,032–0,054 |
+| physics_strict | 6 | 0,167 | 0,15 | 0,096 | 0,962 | 0,0383 | 47,8 % | 0,032–0,047 |
+
+`no_selection` lässt Parallaxen-Genauigkeit, Helligkeit, Beobachtungszahlen und Sichtbarkeitsperioden weg; `physics` behält nur Wackel- und Farben-Helligkeits-Merkmale; `physics_strict` entfernt zusätzlich alle von Parallaxe oder Entfernung abgeleiteten Merkmale (`wobble_ratio`, `abs_g`, `pm_total`). Die Unterschiede zwischen den Varianten (AP 0,038–0,043) liegen im Streuungsbereich der Regionen (0,032–0,058), P@30 und P@100 beruhen auf wenigen Treffern (5–15) und sind nicht unterscheidbar.
+
+Deutung: Das Weglassen der Auswahl-Merkmale und selbst der Parallaxen-abgeleiteten Merkmale kostet kaum etwas. Die Auswahl-Information steckt also nicht in Parallaxe oder Helligkeit, sondern in den Wackel-Statistiken selbst (`ruwe_excess`, `astrometric_excess_noise_sig`, `chi2_per_dof`): Gaia hat Bahnlösungen für Sterne mit erhöhtem Astrometrie-Rauschen gerechnet, und das Modell lernt diese Schwelle mit. Physik und Auswahlregel lassen sich mit diesen Merkmalen nicht trennen. Das Übertragungsrisiko auf DR4 sinkt dadurch nicht, sondern hängt daran, ob Gaia für DR4 dieselben Schwellen auf RUWE und Rauschen benutzt.
+
+**SHAP** (Out-of-Fold, 1.304 Treffer plus 40.000 zufällige Negative): Im vollen Modell `parallax_over_error` 22 % (höher = höherer Score), `ruwe_excess` 15 %, `ms_offset` 10 % (höher = höherer Score), `ruwe` 10 %, `wobble_ratio` 7 % (kleiner = höherer Score: das erwartete Fenster). In der Physik-Variante rückt `wobble_ratio` auf 23 %, `ruwe_excess` 22 %, `ms_offset` 15 %, `astrometric_excess_noise_sig` 12 %; die Wichtigkeit verschiebt sich auf Merkmale, die Parallaxe enthalten (`wobble_ratio`, `abs_g` 6 %). Erst `physics_strict` schließt diesen Umweg aus (siehe Tabelle: kaum Verlust). Das positive Vorzeichen von `ms_offset` heißt: Das Modell bevorzugt Sterne oberhalb der Hauptreihe, wie die Ziele selbst sie zeigen.
+
+**Beschleunigungs-Lösungen** (`accel_check.py`, nur Auswertung): Anteil der Sterne, die in DR3 eine Lösung in `nss_acceleration_astro` haben (gekrümmte Bewegung, Messzeit für eine Bahn zu kurz; Kandidaten für DR4):
+
+| Gruppe (ohne DR3-Bahnlösung) | Sterne | Anteil Beschleunigung |
+|---|---|---|
+| Top 1000 von Modell A (full) | 824 | 16,0 % |
+| zufällige Population | 20.000 | 1,1 % |
+| Kontrollgruppe mit gleicher Parallaxen-Genauigkeit, Helligkeit und `ruwe_z`-Spanne | 20.000 | 7,7 % |
+
+Die Top 1000 enthalten 15-mal mehr Beschleunigungs-Lösungen als die Population und etwa doppelt so viele wie eine nach Qualität, Helligkeit und Wackeln ausgewählte Kontrollgruppe. Ein Teil der Anreicherung ist also Qualität und Wackeln, aber es bleibt ein Faktor 2 darüber. Hinweis, kein Beweis, dass die Top-Sterne Langzeit-Begleiter enthalten.
+
+**Bestätigte Begleiter und `ms_offset`** (DR3-Features, NASA-Hosts): Astrometrisch entdeckte substellare Begleiter (6 Sterne: GJ 896 A b, HIP 66074 b, Gaia-4 b, HD 128717 b, Gaia-5 b, DENIS-P J082303.1-491201 b): Median `ms_offset` −0,08 (Quartile −0,46/0,17), Population −0,03. Transit-Hosts 0,08, Radialgeschwindigkeits-Hosts 0,31. Die Ziele des Backtests liegen bei 0,45. Bestätigte dunkle Begleiter sitzen also nahe der Hauptreihe, die Ziele deutlich darüber: Das stützt die Deutung, dass ein Teil der Ziele unter 80 M_Jup leichte Doppelsterne mit zu klein geschätzter Masse ist. Metallizität und die kleine Stichprobe (6) sind Einschränkungen. Die bestätigten astrometrischen Begleiter haben in DR3 auch sehr kleines `wobble_ratio` (0,01–0,12), sie wurden nicht über das RUWE-Signal gefunden.
+
+**Modelle B und B'** (NASA-Labels, DR2-Features, gleiches Protokoll; B: 658 Wirtssterne, B': 106 mit erwarteter Amplitude >= 0,1 mas, 32 ohne Masse/Periode; Schwelle vorher festgelegt):
+
+| Modell | AUC (eigenes Label) | AP (eigenes Label) | AUC (Ziel) | AP (Ziel) | P@100 (Ziel) | P@1000 (Ziel) | Recall@1 % (Ziel) |
+|---|---|---|---|---|---|---|---|
+| B | 0,942 | 0,0585 | 0,641 | 0,0008 | 0 | 0 | 0,4 % |
+| B' | 0,985 | 0,0166 | 0,602 | 0,0009 | 0 | 0 | 0,8 % |
+| A (full) | – | – | 0,969 | 0,0434 | 0,08 | 0,097 | 54,5 % |
+
+B und B' lernen ihr eigenes Label gut (AUC 0,94/0,99, vor allem über Helligkeit und Entfernung der beobachteten Planetensterne), finden das Backtest-Ziel aber praktisch nicht. Die Negativ-Kontrolle bestätigt, dass Planetenlabels ohne Wackel-Bezug für dieses Ziel nichts beitragen. SHAP für B/B' und die AP-Streuung je Region fehlen noch.

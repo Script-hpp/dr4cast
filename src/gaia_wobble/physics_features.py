@@ -7,10 +7,12 @@
    at an orbital period equal to the release's observing baseline. Values well above 1 point to a stellar companion.
    The same computation gives the amplitude range needed for list 2 of the bet.
 
-The stellar mass comes from a ROUGH main-sequence mass-absolute-G relation (`MASS_TABLE`, values from memory of common
-spectral-type tables, not checked against a source). It only enters through a cube root, but it must be replaced or
-cross-checked (e.g. against FLAME masses, bet only) before the numbers are quoted.
+The stellar mass comes from the main-sequence mean sequence of Pecaut & Mamajek (Mamajek's table, version 2022.04.16,
+absolute Gaia G vs mass; `data/mamajek_mg_mass.csv`). It is a dwarf sequence: giants, subgiants and unresolved binaries get
+a mass that is too small or too large; the result is only an approximate scale for the wobble ratio.
 """
+from pathlib import Path
+
 import duckdb
 import numpy as np
 import pandas as pd
@@ -19,10 +21,8 @@ from .paths import PROCESSED
 
 M_JUP = 9.5479e-4
 BASELINE_YEARS = {"dr2": 22 / 12, "dr3": 34 / 12}  # observing baseline of each release
-MASS_TABLE = np.array([  # (absolute G mag, mass in M_sun), main sequence
-    (0.5, 2.9), (2.0, 1.8), (3.0, 1.45), (4.0, 1.15), (4.7, 1.0), (5.5, 0.9), (6.0, 0.8), (7.0, 0.68),
-    (8.0, 0.6), (9.0, 0.5), (10.0, 0.4), (11.0, 0.3), (12.0, 0.2), (13.0, 0.14), (14.0, 0.1), (16.0, 0.08),
-])
+_MASS = pd.read_csv(Path(__file__).parent / "data" / "mamajek_mg_mass.csv", comment="#")
+MASS_TABLE = _MASS[["M_G", "Msun"]].to_numpy(float)  # main-sequence M_G -> mass, Mamajek 2022.04.16 (Pecaut & Mamajek 2013)
 COLOUR_STEP = 0.1
 
 
