@@ -308,3 +308,21 @@ Beide Kriterien erfüllt. Nach Periode: unter 200 d 0,62 (ρ 0,87), 200–500 d 
 Die Amplitude wird im Median um etwa 40 % unterschätzt (Vorfaktor `sqrt(2)` für Kreisbahnen, Teile der Bahn gehen in den 5-Parameter-Fit). Damit werden die Begleitermassen zu klein und `P(m2 < 13 M_Jup)` zu groß geschätzt. Eine Korrektur ist nicht eingebaut (die Prüfung galt dem Feature wie definiert); sie wäre eine Manifest-Änderung. Die Validierung bleibt geschönt (starke Wackler, günstige Perioden), und die Bahnlösungen sind selbst die Sterne, deren Amplitude gut messbar ist.
 
 **Vorschau Liste 2** (Entwicklungslauf auf DR3, ohne Nachbar-Filter, bekannte Fälle ausgeschlossen): Score = Score von Modell A × `P(m2 < 13 M_Jup)`, nur `ms_offset < 0,2`. Die Top 100 überschneiden sich nur mit 3 Sternen mit den Top 100 von Liste 1, mittleres `P(m2 < 13)` = 1,0, Median `ms_offset` 0,04, 12 % mit DR3-Beschleunigungs-Lösung (Population 1,2 %), 2 % mit DR3-Bahnlösung. Liste 2 ist damit eine andere Liste als Liste 1. In den Top 1.000 von Liste 1 haben 37,6 % ein `P(m2 < 13) > 0,5`, 38,1 % ein `ms_offset < 0,2` und 13,9 % beides.
+
+## 2026-09-25 – Listen-Generator (`make_lists.py`) und Plausibilität von Liste 2 (`plausibility.py`)
+
+**Generator:** Beide Listen in einem Lauf aus demselben Stand. Liste 1: Score `P_A`; Liste 2: `P_A · P(m2 < 13 M_Jup)`, nur `ms_offset < 0,2`. Ausgeschlossen aus `rank_new` (Rang der Hauptmetrik): bekannte DR3-Bahn unter 80 M_Jup, bekannte Planetensterne, Gaia-Nachbar innerhalb von 2". Je Liste die ersten 1.000 Zeilen nach `rank_new`; die eingefrorene Wette sind die ersten 100. Jede Zeile hat `source_id`, `rank_new`, `rank_raw`, Score, beide Teilwerte und die Markierungen `known_dr3_orbit80`, `known_dr3_orbit_any`, `dr3_acceleration`, `known_planet`, `neighbour_2arcsec`. Kopf der Datei: Manifest-Version, Datum, Git-Stand, Beschreibung des Scores; daneben `.sha256` je Liste und `lists_manifest.json` (Prüfsummen der Modelle, der Feature-Tabellen, der Nachbartabelle). Datum und Git-Stand sind Parameter, dadurch entstehen bei gleichen Eingaben byte-identische Dateien (Test `test_make_lists.py`, beide Listen zweimal erzeugt und verglichen). Die Nachbartabelle wird einmal beim Archiv abgefragt und mit dem Listenpaket zwischengespeichert; ohne diesen Zwischenspeicher wäre die Liste vom Archiv abhängig. Die Werte sind Ordnungs-Scores, keine kalibrierten Wahrscheinlichkeiten (Verzerrung der Amplitude um etwa 40 %, siehe oben); im Bericht wird „Score“ geschrieben.
+
+**Kontrollplaneten** (nicht im Training, nicht als bekannt ausgeschlossen; alle 5.244.458 DR3-Sterne ohne Qualitätsfilter):
+
+| Planet | `parallax_over_error` | G | `ms_offset` | `P(m2 < 13)` | Rang Score Liste 1 | Rang Score Liste 2 |
+|---|---|---|---|---|---|---|
+| Gaia-4 b (11,8 M_Jup) | 650 | 11,9 | −0,06 | 0,80 | 81.298 (1,6 %) | 6.244 von 3.810.363 (0,2 %) |
+| Gaia-5 b (20,9 M_Jup) | 673 | 13,2 | −0,58 | 0,84 | 6.430 (0,1 %) | 532 von 3.810.363 (0,014 %) |
+
+Beide liegen im Score von Liste 2 im obersten Promille bis Prozent, besser als im Score von Liste 1, und beide erfüllen die `ms_offset`-Regel. Die Bewertung ist ein Einzelfall mit zwei Sternen und keine Validierung.
+
+**Backtest für Liste 2** (DR2, Out-of-Fold-`P_A` der Physik-Variante mal `P(m2 < 13)` aus DR2, `ms_offset < 0,2`; 1.541.482 Sterne):
+- **Von den 17 Zielen unter 13 M_Jup erfüllen nur 4 die `ms_offset`-Regel**; die Regel entfernt also 13 der 17 Ziele (und 409 von 1.304 Zielen unter 80 M_Jup bleiben). Das passt zur Deutung, dass die Ziele meist über der Hauptreihe liegen (Verunreinigung durch leichte Doppelsterne); es heißt aber auch, dass die Backtest-Validierung von Liste 2 auf 4 Sternen beruht.
+- Score von Liste 2: Treffer unter 13 M_Jup in den Top 100/1000/10000: 0/2/2; mittlerer Rang der 4 Ziele 9.540 von 1.541.482. Score von Liste 1 auf derselben Menge: 0/0/2, mittlerer Rang 27.129. Treffer unter 80 M_Jup in den Top 100/1000: Liste 2 2/38, Liste 1 9/77.
+- 2 von 4 Zielen in den Top 1000 von 1,5 Mio. (Erwartung bei Zufall: 0,003) ist eine deutliche Anreicherung, bleibt aber bei 4 Zielen eine Tendenz ohne Signifikanzaussage.
