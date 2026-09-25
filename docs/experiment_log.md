@@ -116,3 +116,23 @@ Signal in DR2 (`ruwe_z`, Median und Anteil über 3):
 | `Orbital` insgesamt (mit Verknüpfung) | 9.891 | 3,58 | 56 % | 74 % |
 
 Befunde: (1) Das Wackel-Signal ist in DR2 deutlich schwächer als in DR3, wie erwartet (kürzere Messdauer). (2) Die 17 Ziele unter 13 M_Jup zeigen in DR2 im RUWE praktisch kein Signal (Median 0,24, keiner über 3): Für Liste 2 trägt RUWE allein im Backtest nicht; die Validierung stützt sich auf andere Größen. (3) Die bekannten Planetensterne bleiben unauffällig, wie in DR3.
+
+## 2026-09-25 – Feature-Tabellen und RUWE-Baseline im Backtest DR2→DR3
+
+Tabellen: `features_dr2.parquet` (5.960.755 Sterne), `features_dr3.parquet` (5.244.458), `targets_dr2.parquet`. Gemeinsame Merkmale (`COMMON` in `features.py`) sind für beide Releases gleich berechnet; DR2 enthält keine DR3-only-Spalten (per Test geprüft). HGCA-Abdeckung 0,8 % (DR2) und 1,0 % (DR3). Ziel je DR2-Stern: verknüpfte DR3-`Orbital`-Lösung (kleinster Winkelabstand) mit geschätzter Masse unter 80 bzw. 13 M_Jup. Ausgeschlossen (Label unbekannt, weder positiv noch negativ): 897 Sterne, davon 451 mit `Orbital`-Lösung ohne `m1` und 446 mit `OrbitalTargetedSearch*`/`OrbitalAlternative*`. Positive und ausgeschlossene Sterne überlappen sich nicht. Die Negativen enthalten 9.033 Sterne mit `Orbital`-Lösung und größerer Begleitermasse (Median `ruwe_z` 3,96): Das Modell muss substellar von stellar unterscheiden, nicht nur wackelnd von ruhig.
+
+**Baseline** (Population = DR2-Stichprobe mit Filter `parallax_over_error >= 10`: 2.304.869 Sterne, 1.304 Treffer unter 80 M_Jup, Basisrate 0,057 %):
+
+| Score | AUC | AP | Recall@1 % | Recall@5 % | Recall@10 % | bester Rang | P@100 |
+|---|---|---|---|---|---|---|---|
+| RUWE | 0,783 | 0,0012 | 0,0 % | 1,3 % | 9,8 % | 35.627 | 0 |
+| `ruwe_z` | 0,830 | 0,0017 | 0,0 % | 5,8 % | 39,7 % | 52.653 | 0 |
+| `astrometric_excess_noise_sig` | 0,786 | 0,0015 | 0,1 % | 7,5 % | 25,7 % | 22.881 | 0 |
+
+Ohne Filter: AUC RUWE 0,684, `ruwe_z` 0,809, `astrometric_excess_noise_sig` 0,762. Variante „nur neue Treffer“ ist von „alle“ praktisch nicht zu unterscheiden (658 bekannte Planetensterne, fast keiner unter den Treffern).
+
+Befunde:
+1. **P@10, P@30 und P@100 sind für alle Baselines 0.** Die obersten Plätze der RUWE-Sortierung sind Extremfälle (RUWE 38–112, G ca. 12): sehr wahrscheinlich enge stellare Doppelsterne oder Messartefakte, kein Ziel darunter. Der beste Treffer steht auf Rang 23.000–53.000 von 2,3 Mio. Für den Backtest folgt: Ein Modell, das schon einen Treffer in die Top 100 bringt, schlägt die Baseline, aber ein Verhältnis zur Baseline ist nicht definiert. Deshalb die Zusatzmetriken (Manifest 0.11).
+2. Die Kalibrierung hilft: `ruwe_z` schlägt den rohen RUWE deutlich (AUC 0,83 gegenüber 0,78; Recall@10 % 40 % gegenüber 10 %).
+3. Der Qualitätsfilter `parallax_over_error >= 10` verbessert die Baseline (AUC RUWE 0,68 → 0,78), weil er Sterne mit verfälschtem RUWE entfernt, ohne ein Ziel zu verlieren.
+4. Eine reine Wackel-Sortierung findet die Ziele nicht an der Spitze, weil dort stellare Doppelsterne stehen. Erwartung für Modell A: Es muss lernen, extreme Wackler (Doppelsterne) von moderaten (substellare Begleiter) zu trennen.
