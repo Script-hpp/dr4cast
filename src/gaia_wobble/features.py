@@ -14,6 +14,7 @@ COMMON = [
     "astrometric_n_obs_al", "astrometric_n_good_obs_al", "chi2_per_dof", "visibility_periods_used",
     "ruwe", "ruwe_expected", "ruwe_excess", "ruwe_z",
     "hg_dpm_gaia", "hg_sig_gaia", "hg_dpm_hip", "hg_sig_hip", "has_hgca",
+    "ms_offset", "mass_ms", "wobble_ratio",
 ]
 DR3_ONLY = ["ipd_gof_harmonic_amplitude", "ipd_frac_multi_peak", "ipd_frac_odd_win", "non_single_star"]
 

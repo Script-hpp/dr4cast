@@ -6,13 +6,14 @@
 import numpy as np
 import pandas as pd
 
-KS = (10, 30, 100)
+KS = (10, 30, 100, 1000)
 G_CLASSES = [(-np.inf, 10, "G<10"), (10, 13, "10-13"), (13, 16, "13-16"), (16, 19, "16-19"), (19, np.inf, "G>=19")]
 
 
 def _metrics(y_sorted: np.ndarray, n_pos: int) -> dict:
     out = {f"P@{k}": y_sorted[:k].mean() if len(y_sorted) else np.nan for k in KS}
     out["hits@100"] = int(y_sorted[:100].sum())
+    out["hits@1000"] = int(y_sorted[:1000].sum())
     out["Recall@100"] = y_sorted[:100].sum() / n_pos if n_pos else np.nan
     out["n_pos"] = n_pos
     return out

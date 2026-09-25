@@ -136,3 +136,44 @@ Befunde:
 2. Die Kalibrierung hilft: `ruwe_z` schlägt den rohen RUWE deutlich (AUC 0,83 gegenüber 0,78; Recall@10 % 40 % gegenüber 10 %).
 3. Der Qualitätsfilter `parallax_over_error >= 10` verbessert die Baseline (AUC RUWE 0,68 → 0,78), weil er Sterne mit verfälschtem RUWE entfernt, ohne ein Ziel zu verlieren.
 4. Eine reine Wackel-Sortierung findet die Ziele nicht an der Spitze, weil dort stellare Doppelsterne stehen. Erwartung für Modell A: Es muss lernen, extreme Wackler (Doppelsterne) von moderaten (substellare Begleiter) zu trennen.
+
+## 2026-09-25 – Physikalische Features und ein Befund zum Ziel
+
+Neue Features (`physics_features.py`, je Release aus eigenen Daten): `ms_offset` (Abstand über der Hauptreihe bei gleicher Farbe, Hauptreihe = Median der absoluten G-Helligkeit je Farbbin, Sterne unter 100 pc mit `parallax_over_error >= 20`), `mass_ms` (grobe Hauptreihen-Massentabelle in `MASS_TABLE`, aus dem Gedächtnis, **nicht gegen eine Quelle geprüft**) und `wobble_ratio` (`astrometric_excess_noise` geteilt durch die größte Reflexbewegung eines 80-M_Jup-Begleiters bei einer Periode gleich der Messdauer: DR2 22, DR3 34 Monate). Fehlende Werte: 4 % bei `ms_offset` (kein BP-RP).
+
+Werte in DR2 (Filter `parallax_over_error >= 10`):
+
+| Gruppe | Median `ms_offset` | Median `wobble_ratio` | 90. Perzentil `wobble_ratio` |
+|---|---|---|---|
+| Ziele unter 80 M_Jup (1.304) | 0,45 | 0,21 | 0,37 |
+| Sterne mit `Orbital`-Lösung, größere Masse (8.587) | 0,32 | 0,39 | 0,86 |
+| Übrige Population | −0,06 | 0,23 | 1,13 |
+
+- `wobble_ratio` zeigt das erwartete Fenster: Die Ziele haben ein enges Band unter 1 (90. Perzentil 0,37), Doppelsterne mit größerer Masse wackeln stärker (0,39/0,86), die übrige Population hat einen langen Schwanz nach oben (1,13).
+- **`ms_offset` verhält sich anders als erwartet.** Erwartet: Doppelsterne über der Hauptreihe, Ziele (dunkle Begleiter) darauf. Beobachtet: Die Ziele liegen in jeder Farbe und Entfernung etwa 0,4–0,5 mag *über* der Hauptreihe (bei BP-RP 2: 0,42 gegenüber −0,10 in der Population; bei 50 bis 200 pc: 0,43–0,61 gegenüber −0,17 bis −0,04) und sind darin von den stellaren `Orbital`-Sternen (0,32 bzw. 0,52) nicht zu trennen. Eine Doppelstern-Signatur (gleich große Begleiter heben ein System um 0,75 mag). Mögliche Deutung, nicht belegt: Ein Teil der Ziele unter 80 M_Jup sind unaufgelöste leichte Doppelsterne, deren `m1` (FLAME für Einzelsterne) zu groß und deren `m2` damit zu klein geschätzt ist. Das passt zu Nachfolgemessungen, die unter astrometrischen Gaia-Kandidaten Braune Zwerge und „Impostor“-Doppelsterne finden (Radialgeschwindigkeits-Nachbeobachtung, arXiv 2609.08590; von mir nicht gelesen). Für die Wette ändert sich nichts (gemessen wird gegen Gaias Veröffentlichung), für die Aussage „substellar“ gilt: Ein Teil der Treffer ist ein Kandidat, keine bestätigte Masse.
+
+## 2026-09-25 – Modell A, erster Lauf im Backtest DR2→DR3 (`model_a.py`)
+
+Aufbau (vor dem Lauf festgelegt, nicht getunt): LightGBM, 28 gemeinsame Merkmale (`COMMON`), Population DR2 mit `parallax_over_error >= 10` (2.304.869 Sterne, 1.304 Treffer unter 80 M_Jup, 897 Sterne mit unbekanntem Label ausgeschlossen), 5-fach-Kreuzvalidierung nach HEALPix-Level-2-Region (ganze Pixel pro Fold), Negative im Training 1:50 heruntergesampelt, Early Stopping auf Average Precision mit einer weiteren ausgehaltenen Region, `num_leaves` 15, `min_child_samples` 200, `reg_lambda` 10, Seed 42. Bewertet wird mit den Out-of-Fold-Scores auf der vollen Population. Genau ein Lauf, keine Hyperparameter-Suche.
+
+| Metrik | Modell A | Baseline `ruwe_z` | Baseline RUWE |
+|---|---|---|---|
+| P@10 | 0,00 | 0 | 0 |
+| P@30 | 0,033 | 0 | 0 |
+| P@100 | 0,11 (11 Treffer) | 0 | 0 |
+| P@1000 | 0,111 (111 Treffer) | – | – |
+| Recall@1 % | 55,7 % | 0,0 % | 0,0 % |
+| Recall@10 % | 93,0 % | 39,7 % | 9,8 % |
+| AUC | 0,971 | 0,830 | 0,783 |
+| AP (Basisrate 0,057 %) | 0,0448 | 0,0017 | 0,0012 |
+| bester Rang | 25 | 52.653 | 35.627 |
+
+„Nur neue Treffer“ ist von „alle“ nicht zu unterscheiden. Nach Helligkeit (Liste je Klasse): G 13–16 trägt die meisten Treffer (929 Ziele, P@100 0,14), G 10–13 P@100 0,06, G 16–19 0,09, G < 10 keine Treffer in den Top 100 (30 Ziele), G >= 19 keine Ziele. Wichtigste Merkmale (Gain-Anteil): `ruwe_excess` 29 %, `parallax_over_error` 23 %, `ruwe` 7 %, `wobble_ratio` 7 %, `bp_rp` 5 %, `ms_offset` 5 %.
+
+**Was das Modell gelernt hat (Diagnose, Out-of-Fold):**
+- In den Top 100: 11 substellare Ziele, 6 Sterne mit `Orbital`-Lösung größerer Masse, 83 Sterne ohne DR3-Bahnlösung. In den Top 1000: 111, 70 und 819.
+- Das Modell findet Sterne mit *irgendeiner* DR3-Bahnlösung gut (AUC 0,87 gegen den Rest): ein großer Teil ist Gaias Auswahl (hohe Parallaxen-Genauigkeit, mäßiges Wackeln, G 13–16), nicht Physik. `parallax_over_error` als Nr. 2 der Merkmale bestätigt das.
+- Innerhalb der Sterne mit Bahnlösung trennt es substellar von stellar mit AUC 0,82 und AP 0,42 (Basisrate 0,13): Das ist der physikalische Teil, er ist echt, aber deutlich schwächer als der Gesamt-AUC vermuten lässt.
+- 82 % der Top 1000 haben in DR3 keine Bahnlösung. Ob sie Fehlalarme sind oder in DR3 nur knapp unter Gaias Auswahlschwelle lagen und in DR4 (66 statt 34 Monate) eine Lösung bekommen, kann der Backtest nicht klären.
+
+Grenzen: Genau ein Datensatz-Split; die Streuung zwischen den Folds ist groß (AP 0,034–0,061 je Region). Der Gesamt-AUC ist durch die Auswahl-Signale aufgebläht. SHAP-Auswertung, Vergleich mit den NASA-Label-Modellen B/B' und Feature-Ablationen stehen noch aus.

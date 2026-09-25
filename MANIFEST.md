@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.11
+**Version:** 0.12
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -21,7 +21,7 @@ Das Manifest darf jederzeit angepasst werden, solange wir lernen. Die Glaubwürd
 | Nebenziel | Auswertung getrennt nach Helligkeitsklassen und nach `OrbitalTargetedSearch`; ESA-Massen aus `nss_masses` |
 | Offizielle ESA-Liste | Falls veröffentlicht: zusätzliche Auswertung, ersetzt nicht das Hauptziel |
 | Verknüpfung DR3→DR4 | Nur über die Tabelle `dr3_neighbourhood`, nie über gleiche `source_id` |
-| Metriken | P@10, P@30, P@100, Recall@100, absolute Treffer; zusätzlich nach Helligkeitsklassen. Zusätzlich (Ergänzung 0.11, festgelegt nach Blick auf die Baseline, aber vor jedem Modell): ROC-AUC, Average Precision, Recall in den obersten 1 %, 5 % und 10 % der Population und der beste Rang eines Treffers. Jede Metrik wird zweifach berichtet: *alle Treffer* und *nur neue Treffer* (Sterne, die nicht in den Trainingslabels waren). **Hauptmetrik ist „nur neue Treffer“**, weil bekannte Planetensterne leicht wiederzufinden sind |
+| Metriken | P@10, P@30, P@100, P@1000, Recall@100, absolute Treffer; zusätzlich nach Helligkeitsklassen. Zusätzlich (Ergänzung 0.11, festgelegt nach Blick auf die Baseline, aber vor jedem Modell): ROC-AUC, Average Precision, Recall in den obersten 1 %, 5 % und 10 % der Population und der beste Rang eines Treffers. Jede Metrik wird zweifach berichtet: *alle Treffer* und *nur neue Treffer* (Sterne, die nicht in den Trainingslabels waren). **Hauptmetrik ist „nur neue Treffer“**, weil bekannte Planetensterne leicht wiederzufinden sind |
 | Vergleich | RUWE-Sortierung, ExoDNN, Sahlmann & Gómez (P@20) |
 | Offizielle Wette | Beide Listen werden vor dem Release eingefroren und immer beide berichtet. Keine wird nachträglich zur Hauptliste erklärt |
 
@@ -151,3 +151,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.9 | 2026-09-25 | Wette mit zwei gleichrangigen Listen (unter 80 M_Jup und unter 13 M_Jup); Liste 2 mit Massenwahrscheinlichkeit aus `ruwe_excess`; Rückfallregel bei ungenügender Validierung | Modell A wird auf unter 80 M_Jup trainiert (1.306 Treffer); das Planetenziel unter 13 M_Jup (17 Treffer) bleibt als eigene Liste erhalten |
 | 0.10 | 2026-09-25 | Rückfallregel für Liste 2 unabhängig vom Amplituden-Feature (Sternmasse < 0,6 M_sun, unter 100 pc); Herkunft der Sternmassen (FLAME / Masse-Helligkeits-Beziehung, im Backtest nur DR2-Photometrie); GaiaPMEX als Vergleich; Grenze der Validierung an Bahnlösungen | Die alte Rückfallregel war zirkulär (dieselbe Rechnung wie das Feature) |
 | 0.11 | 2026-09-25 | Zusatzmetriken AUC, AP, Recall@1/5/10 % neben P@k und Recall@100 | Die RUWE-Baseline hat im Backtest P@100 = 0; ohne Kurvenmetriken lassen sich die Modelle nicht vergleichen. Festgelegt nach Blick auf die Baseline, vor jedem Modell |
+| 0.12 | 2026-09-25 | P@1000 als praxisnahe Zwischenstufe aufgenommen; Features `ms_offset`, `wobble_ratio`, `mass_ms` (physikalisch motiviert, je Release aus eigenen Daten) in die gemeinsamen Merkmale; Training mit regionaler Aufteilung (HEALPix) | Baseline: Extremwackler sind Doppelsterne, das Modell braucht ein Fenster; Gaias Messfehler sind regional korreliert |
