@@ -400,3 +400,18 @@ Ziel `y13_ms` (4 Treffer): Liste 2 hat 2 Treffer in den Top 1.000 (ohne und mit 
 Die Intervalle von Modell A und den Baselines überlappen nicht (P@1000, Average Precision); der Unterschied ist also größer als die räumliche Streuung. Die Intervalle für Liste 2 liegen unter denen von Liste 1, wie erwartet (kleinere Zielmenge, andere Sterne).
 
 **Nicht getestet im Backtest:** Die Metrik für Sahlmann & Gómez, die Konkurrenz-Listen und die Zahl der Sterne ohne Verknüpfung (`unlinked_report`): Sie gelten für die Auswertung DR3→DR4 und sind mit Tests im Auswertungsskript hinterlegt.
+
+## 2026-09-25 – Prüfung der handgebauten Regel und der logistischen Regression (Deutung, nicht vorab festgelegt)
+
+**Handgebaute Regel, Fehlersuche:** Alle 1.304 Ziele haben ein gültiges `wobble_ratio` (kein Fehlwert) und alle liegen darunter (< 1); 474 haben `ruwe_z > 2`. Die Regel liefert 134.890 Sterne, davon 474 Ziele. Der beste Treffer steht auf Rang 6.010, der mittlere auf Rang 83.419. Bei der reinen `ruwe_z`-Sortierung steht der beste Treffer auf Rang 52.653. Kein Vorzeichen- oder Fehlwert-Fehler: Die Regel scheitert an der Sortierung. Die obersten Plätze haben `ruwe_z` von 37 bis 500 (Rang 1.000: 37), die Ziele liegen im Median bei 1,43. Die Bedingung `wobble_ratio < 1` verbessert den besten Rang etwa um den Faktor 9, reicht aber nicht.
+
+**Fenster-Deutung** (Ziel `y80`, gleiche Aufteilung nach Region wie Modell A; ein Lauf, nicht vorab festgelegt):
+
+| Modell | AUC | AP | Treffer Top 100 | Treffer Top 1.000 |
+|---|---|---|---|---|
+| logistische Regression, 9 lineare Merkmale | 0,862 | 0,0034 | 0 | 0 |
+| plus Quadrate von 4 Wackel-Merkmalen | 0,935 | 0,0119 | 7 | 46 |
+| plus `log1p` und Quadrate | 0,955 | 0,0247 | 1 | 61 |
+| Modell A (LightGBM) | 0,966 | 0,0394 | 15 | 93 |
+
+Mit quadratischen Termen holt die logistische Regression einen großen Teil des Abstands zu Modell A auf (AUC 0,86 → 0,96, Treffer in den Top 1.000 von 0 auf 46 bis 61). Die Deutung „Fenster: auffällig, aber nicht zu stark“ wird damit gestützt; sie erklärt aber nicht den ganzen Abstand (Average Precision 0,025 gegen 0,039). Nur für den Bericht.
