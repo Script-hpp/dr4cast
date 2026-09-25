@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.17
+**Version:** 0.18
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -130,6 +130,17 @@ Abdeckung in unserer Grundgesamtheit (`parallax_over_error >= 10`): ExoDNN 7.414
 
 Asymmetrie, die im Bericht stehen muss: Die Liste von Sahlmann & Gómez besteht aus Sternen mit DR3-Bahnlösung, die sie als Planeten- oder Braune-Zwerg-Kandidaten einordnet. Sie sind nach unserer Regel „neue Treffer“ bekannte Fälle; ihre Liste wird deshalb nur in der Fassung „alle Treffer“ verglichen. ExoDNN sagt „Doppelstern-Begleiter“ voraus, nicht substellare Begleiter; Kiefer et al. suchen Planeten mit 1–3 AE, andere Grenzen als wir.
 
+### Zusätzliche Benchmarks (festgelegt vor den Ergebnissen)
+
+Alle Methoden werden im Backtest und später bei DR4 mit denselben Ausschlüssen ausgewertet und jeweils **einmal mit und einmal ohne Nachbar-Filter** (2", im Katalog des Ausgangsreleases; Nachbarn werden für die obersten 3.000 Sterne jeder Methode abgefragt, das genügt für P@100 und P@1000).
+
+1. **Handgebaute Regel ohne ML** (`rule_based`): Sterne mit `ruwe_z > τ` und `wobble_ratio < 1`, sortiert nach `ruwe_z` absteigend (Nachbar-Filter wie oben). τ wird im Backtest aus {2, 3, 4, 5, 6, 8} gewählt: die kleinste Schwelle mit dem größten P@1000 (mit Nachbar-Filter, Ziel `y80`, alle Treffer), danach festgeschrieben.
+2. **Logistische Regression** (`logreg`) mit denselben 9 Merkmalen wie Modell A: fehlende Werte durch den Median ersetzt, an den Perzentilen 0,5 und 99,5 des Trainingsteils gekappt, standardisiert, `C = 0,1`, ausgeglichene Klassengewichte; gleiches Protokoll wie Modell A (regionale Aufteilung, Negative 1:50).
+3. **HGCA-Liste** (`hgca`): Sterne mit HGCA-Werten, sortiert nach der Signifikanz der Beschleunigung `hg_sig_gaia` absteigend (im Backtest die HGCA-Version auf DR2-Basis, bei DR4 die EDR3-Version). Verglichen wird nur auf der Teilmenge der Sterne mit HGCA-Werten: HGCA-Liste gegen Modell A und die Baselines, alle nur auf diesen Sternen; zusätzlich die Abdeckung (Anteil der Ziele mit HGCA-Werten).
+4. **Konfidenzintervalle:** Bootstrap über HEALPix-Level-2-Zellen (192 Zellen, Ziehen mit Zurücklegen), 95-%-Intervall aus den Perzentilen 2,5 und 97,5, für P@100, P@1000 und Average Precision; im Backtest im Entwicklungslauf mit 200, in der endgültigen Auswertung mit 1.000 Wiederholungen.
+5. **Ohne Verknüpfung:** Das Auswertungsskript gibt aus, wie viele Sterne jeder Liste keine Verknüpfung zum späteren Release haben. Sterne ohne Verknüpfung zählen als negativ, die Zahl steht aber im Bericht.
+6. **Sahlmann & Gómez** (ungeordnete Menge von 20, davon 18 in unserer Grundgesamtheit): Metrik ist die Trefferquote der 18 Sterne (Treffer geteilt durch 18) im Vergleich zur Trefferquote unserer Top 18 (Fassung „alle Treffer“, Ziel `y80`).
+
 ## Auswertungsskript
 
 Das Skript `src/gaia_wobble/evaluate_bet.py` wird zusammen mit den Listen eingefroren (derselbe Git-Tag). Es enthält alle Entscheidungen, die sonst erst nach dem Release fielen:
@@ -202,3 +213,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.15 | 2026-09-25 | Hauptziel von Liste 2 um `ms_offset < 0,2` ergänzt; Ziel ohne die Bedingung zusätzlich berichtet | 13 von 17 Backtest-Zielen unter 13 M_Jup liegen 0,41–0,91 mag über der Hauptreihe (vermutlich leichte Doppelsterne) und sind für Liste 2 ausgeschlossen; Liste und Ziel sollen dieselbe Idee umsetzen |
 | 0.16 | 2026-09-25 | Auswertungsskript und seine Entscheidungen (Verknüpfung, Ziele, Ausschlüsse, Schema-Anpassung) festgeschrieben | Sonst würden diese Entscheidungen erst nach dem Release fallen |
 | 0.17 | 2026-09-25 | Konkurrenz-Listen (ExoDNN, Kiefer et al., Sahlmann & Gómez) beschafft, mit Prüfsumme abgelegt, Ordnungsregeln und Vergleichsbedingungen festgelegt | Vor dem Release festlegen, sonst wirken Ordnung und Auswahl nachträglich gewählt |
+| 0.18 | 2026-09-25 | Zusatz-Benchmarks (handgebaute Regel, logistische Regression, HGCA-Liste), Bootstrap über HEALPix-Zellen, Auswertung mit und ohne Nachbar-Filter, Zahl der Sterne ohne Verknüpfung, eigene Metrik für Sahlmann & Gómez | Vor den Ergebnissen festgelegt, damit sie nicht nachträglich gewählt wirken |
