@@ -446,3 +446,30 @@ Baseline `ruwe_z`: AUC 0,830 (`binary_masses`, `y80`) und 0,841 (`mass_ms`), 0 T
 - Das größere Ziel **hebt** die Leistung für `y80`: 19 statt 15 Treffer in den Top 100, 116 statt 93 in den Top 1.000, Average Precision 0,052 statt 0,040. Die zusätzlichen Ziele (Median `ms_offset` 0,46, wie die übrigen) sehen für das Modell aus wie die bisherigen. Das Modell wurde nicht neu trainiert.
 - Bei `y13` und `y13_ms` ist die Aussage schwach: 24 bzw. 6 Ziele, in den Top 100 kein Treffer, in den Top 1.000 je 0 bis 2. Die AUC für `y13_ms` fällt von 0,96 auf 0,90; bei 4 bzw. 6 Zielen ist das kein belastbarer Unterschied.
 - Erste Auswertung hatte Modell A und Baseline auf verschiedenen Mengen verglichen (1.583 und 1.629 Ziele, weil Sterne mit jetzt bekanntem Label keinen Score haben); korrigiert auf dieselbe Menge.
+
+## 2026-09-26 – Realitätscheck der Simulation für Liste 2: nicht bestanden
+
+Gerechnet nach `docs/simulation_plan.md` (Kriterien, Teilung, erlaubte Anpassungen vor der ersten Zahl festgelegt), Code in `src/gaia_wobble/simulation/`, Ergebnisse in `docs/simulation_results/`. Rechenzeit: etwa 32 ms je simuliertem Stern; Nullprobe, Check C und die Kontrollplaneten zusammen etwa 10 Minuten. Einstellungen am Kalibrierteil: Normierung `k(G)` aus der Nullprobe (0,98 bis 1,11, 16 Helligkeitsintervalle), Messfehler-Faktor `s = 1,0` (Raster 0,8 bis 1,5; Logarithmus des Median-Verhältnisses −0,028 bei 1,0, +0,054 bei 0,9, −0,113 bei 1,1).
+
+**Ergebnis: N nicht bestanden, C nicht bestanden, A nur zur Hälfte bestanden (Gaia-4 b ja, Gaia-5 b nein), B bestanden.** Nach der Regel im Plan wird die Simulation damit **nicht für die Score-Frage benutzt**; die Produktionsläufe (300.000, 600.000 Systeme) und die Sensitivitätskarten werden nicht ausgeführt.
+
+| Prüfung | Ergebnis | Kriterium | Befund |
+|---|---|---|---|
+| **N** Nullprobe (Testteil, 1.050 Sterne) | **nicht bestanden** in allen drei Klassen | 75. Perzentil höchstens 10 % Abweichung, Breite höchstens 25 % | 75. Perzentil −8 % (G < 10), −12 % (10–13), −3 % (13–16); **Breite des mittleren Bereichs um −63 %, −72 % und −48 % zu klein**. Die simulierten Einzelsterne sind viel zu ruhig. |
+| **C** 200 DR3-Bahnlösungen (Testteil, 100 Sterne) | **nicht bestanden** | (i) Rangkorrelation > 0,6, (ii) Median-Verhältnis 0,7–1,4, (iii) mindestens 70 % im 90-%-Bereich | (i) 0,84 erfüllt, (ii) 0,998 erfüllt, **(iii) 56 % nicht erfüllt** (Soll etwa 90 %) |
+| **A** Gaias eigene Bahn, Gaia-4 b | bestanden | echter RUWE im 5.–95. Perzentil | echt 1,50, simuliert 1,24–1,71 (Median 1,44); Excess Noise echt 0,156 mas, simuliert 0,062–0,173 |
+| **A** Gaias eigene Bahn, Gaia-5 b | **nicht bestanden** | dito | echt 3,55, simuliert 1,63–2,11 (Median 1,81); Excess Noise echt 0,408, simuliert 0,155–0,233 |
+| **B** veröffentlichte Elemente | bestanden (beide) | dito | Gaia-4 b: simuliert 1,28–1,63 (echt 1,50); Gaia-5 b: simuliert 1,62–4,06, Median 2,82 (echt 3,55). Die Verteilung von Gaia-5 b ist breit, weil die Bahnwinkel unbekannt sind; das Bestehen ist der schwächere Test. |
+
+**Was die Simulation kann:** Sie trifft die *Höhe* des RUWE bei Sternen mit Bahnlösung im Mittel (Median-Verhältnis 0,998) und *ordnet* sie richtig (Rangkorrelation 0,84 für RUWE, 0,84 für `astrometric_excess_noise`, 0,83 für `chi2_per_dof`). Das Median-Verhältnis von `chi2_per_dof` ist 0,78.
+
+**Was sie nicht kann:** Die *Streuung* stimmt nicht. Die simulierten Einzelsterne haben `astrometric_excess_noise` zu 85 % gleich 0 (echt: 15 %), ein echter Stern hat bei G < 13 typisch 0,09 mas Excess Noise und `chi2_per_dof` um 2,2 (simuliert 1,0 bis 1,1). Nahe liegende Erklärung, nicht getestet: Die Simulation enthält nur den formalen Messfehler, nicht das zusätzliche Rauschen, das Gaia in der Praxis hat (Kiefer et al. 2025 nennen für die Lage des Satelliten typisch 0,076 mas, dazu die Kalibrierung; Abschnitt 3.2 und 3.4 von arXiv 2409.16992). Damit fehlt der Simulation die Streuung, die bei echten Sternen einen Teil des RUWE ausmacht. Bei Gaia-5 b (Periode 358 Tage, nahe einem Jahr) kommt hinzu, dass der Fit einen Teil der Bahn in der Parallaxe aufnimmt; die simulierte Beschreibung liegt dort bei der Hälfte des echten RUWE.
+
+**Merkmale von Modell A in der Nullprobe** (echt gegenüber simuliert, Median): `astrometric_excess_noise_sig` 11 gegen 0, `wobble_ratio` 0,07 gegen 0, `chi2_per_dof` 2,2 gegen 1,0, `ruwe_z` −0,03 bis −0,04 gegen −0,04 bis −0,02 (`ruwe_z` stimmt im Median, nicht im oberen Rand). Diese Merkmale sind nach dem Plan (Punkt 5) „nicht reproduziert“.
+
+**Verlauf, offen benannt:**
+- Die Nullprobe stürzte beim ersten Lauf ab, weil `σ_formal` aus der kleinen Stichprobe statt aus dem ganzen Katalog berechnet wurde (871 von 1.050 Sternen ohne Wert). Das war ein Umsetzungsfehler und wurde nach der Fehlerklausel behoben; der Testteil von N wurde erst danach ausgewertet. Check C war vorher gerechnet und blieb unverändert (nur ein Blick auf den Testteil).
+- Bei 247 von 1.050 Sternen (23,8 %) ist die nominelle Übergangszahl kleiner als die echte; es werden alle vorhandenen genommen (Regel im Plan), die Simulation hat dort weniger Übergänge als der echte Stern.
+- Der Plan erlaubt an den Kalibrierteilen nur die Normierung `k(G)` und den Faktor `s`. Ein zusätzliches Rausch-Term wäre eine Änderung des Modells und keine der erlaubten Anpassungen; der Testteil wurde außerdem schon einmal angesehen.
+
+**Folgen:** Die Simulation liefert keine Aussage darüber, ob eine Variante des Liste-2-Scores Planeten weiter nach oben sortiert. Liste 1, Liste 2, Manifest und Auswertungsskript sind unverändert. Wer die Simulation retten will, braucht ein erweitertes Rauschmodell (Excess Noise aus Lage und Kalibrierung) und **eine neue, unabhängige Testprobe**, weil die jetzige einmal angesehen wurde; beides wäre ein neuer, vor den Ergebnissen festgelegter Plan.

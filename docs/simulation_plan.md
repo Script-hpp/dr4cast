@@ -164,3 +164,8 @@ In den Ergänzungen (Punkt 3, „Angepasst werden darf nur“) stand, `s` werde 
 - **(b) neu:** `s` wird am **Kalibrierteil von Check C** aus dem Raster {0,8; 0,9; 1,0; 1,1; 1,25; 1,5} gewählt: der Wert, für den der Betrag des Logarithmus vom Median des Verhältnisses `RUWE_sim,Median / RUWE_echt` am kleinsten ist (je Stern der Median über 20 Rausch-Realisierungen). Bei Gleichstand der Wert näher an 1,0. Die Nullprobe wird nicht zur Wahl von `s` benutzt; ihre Normierung `k(G)` bleibt (a).
 - Die Kriterien N, A, B und C bleiben wie festgelegt und werden mit dem gewählten `s` am Testteil bzw. an A und B ausgewertet.
 - Wegen dieser Skalen-Invarianz misst die Nullprobe nur, ob die simulierte Streuung des RUWE bei Einzelsternen zur echten passt; sie sagt nichts über die Höhe des Messfehlers.
+
+
+## Ergebnis des Realitätschecks (2026-09-26)
+
+N, C und A (Gaia-5 b) sind nicht bestanden; B ist bestanden. Nach der Regel im Abschnitt „Verwendung“ wird die Simulation nicht für die Score-Frage benutzt und die Produktionsläufe werden nicht ausgeführt. Zahlen und Deutung: Experiment-Log, Eintrag „Realitätscheck der Simulation für Liste 2: nicht bestanden“; Rohergebnisse: `docs/simulation_results/`.
