@@ -1,0 +1,27 @@
+{
+  "exodnn": {
+    "description": "Abreu et al. (2025), ExoDNN, A&A 704, A150; 7414 DR3 candidates within 100 pc, score PredProb1",
+    "distinct_source_id": 7414,
+    "retrieved": "2026-09-25",
+    "rows": 7414,
+    "sha256": "ea649e9dd832f449fbbcc655b459a5f1623bfe09a75fe8002bb3e9f3ab5289d1",
+    "vizier_table": "J/A+A/704/A150/exodnnv1"
+  },
+  "kiefer": {
+    "description": "Kiefer et al. (2025), A&A 702, A77; 9698 candidates, G < 16, companion mass min. Mplmin, pRUWE",
+    "distinct_source_id": 9698,
+    "retrieved": "2026-09-25",
+    "rows": 9698,
+    "sha256": "4dfa66b0b7e679268576c87889db11321247d1adea7ad0bfa8bfdb45d306507b",
+    "vizier_table": "J/A+A/702/A77/tableb1"
+  },
+  "sahlmann_gomez": {
+    "list_used": "20 rows after removing the two retracted solutions (54 Cas, BD+75 510); order as printed, the table is not a ranking",
+    "pdf_sha256": "7a6e2face244b3ef5dbf88aa38e9495cd37d3dfe4fbedb999324af766635aab3",
+    "retracted_rows": 2,
+    "retrieved": "2026-09-25",
+    "rows": 22,
+    "sha256": "fb53b881ab816904b9ddfb7c0fe01b2e4a44a038b9e8d30226ac1c1b92f576dc",
+    "source": "Sahlmann & Gomez (2025), MNRAS 537, 1130, arXiv 2404.09350v2, Table 4 (read from the PDF text with pdftotext; checked by row count and by the two solutions retracted by Gaia)"
+  }
+}

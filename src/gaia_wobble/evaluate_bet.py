@@ -142,6 +142,45 @@ def dry_run() -> dict:
             "results": ranked_variants(p, lists, ms_rule_lists={"list2_score"})}
 
 
+
+# ---------------------------------------------------------------- competitor lists (DR3-based, only for the DR3 -> DR4 evaluation)
+
+def competitor_scores(dr3_ids: pd.Series) -> dict[str, pd.Series]:
+    """Scores of the published competitor lists for the stars of our DR3 population (index = DR3 source_id, NaN = not listed).
+
+    Ordering rules (fixed before the release, MANIFEST):
+      exodnn   : PredProb1 descending (the published probability); ties by source_id.
+      kiefer   : s_RUWE descending (significance of the RUWE anomaly), then Mplmin ascending, then source_id. The catalogue is a set
+                 of candidates, not a ranking; this is our documented ordering.
+      sahlmann : the 20 candidates (22 in Table 4 minus the two solutions retracted by Gaia) as an unranked set; score 1 for members.
+    The lists come from DR3 data, the same input as our lists; they cannot be used in the DR2 -> DR3 backtest.
+    """
+    root = RAW / "competitors"
+    out = {}
+    ex = pd.read_parquet(root / "exodnn.parquet").sort_values(["PredProb1", "source_id"], ascending=[False, True])
+    out["exodnn"] = ex.set_index("source_id").PredProb1
+    ki = pd.read_parquet(root / "kiefer.parquet").sort_values(["s_RUWE", "Mplmin", "source_id"], ascending=[False, True, True])
+    ki["score"] = np.arange(len(ki), 0, -1, dtype=float)  # rank score: first row highest
+    out["kiefer"] = ki.set_index("source_id").score
+    sg = pd.read_parquet(root / "sahlmann_gomez.parquet")
+    out["sahlmann"] = pd.Series(1.0, index=sg[~sg.retracted].source_id)
+    return {k: v[~v.index.duplicated()].reindex(dr3_ids) for k, v in out.items()}
+
+
+def competitor_coverage() -> pd.DataFrame:
+    """How many stars of each competitor list are in our DR3 population (parallax_over_error >= 10) and how many are already known."""
+    f = duckdb.sql(f"SELECT source_id FROM '{PROCESSED}/features_dr3.parquet' WHERE parallax_over_error >= 10").df().source_id
+    known = set(duckdb.sql(f"SELECT source_id FROM '{PROCESSED}/dr3_orbit_targets.parquet' WHERE nss_solution_type = 'Orbital' AND m2_est_mjup < 80").df().source_id)
+    known |= set(duckdb.sql(f"SELECT source_id FROM '{PROCESSED}/labels_bet_dr3.parquet'").df().source_id)
+    rows = {}
+    for name, sc in competitor_scores(pd.Series(f.unique())).items():
+        listed = sc.dropna()
+        full = {"exodnn": 7414, "kiefer": 9698, "sahlmann": 20}[name]
+        rows[name] = {"in_list": full, "in_our_population": len(listed), "share": len(listed) / full,
+                      "already_known_in_DR3": int(listed.index.isin(known).sum())}
+    return pd.DataFrame(rows).T
+
+
 def to_markdown(res: dict) -> str:
     lines = [f"population {res['population']:,}; targets {res['targets']}"]
     for name, r in res["results"].items():

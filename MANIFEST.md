@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.16
+**Version:** 0.17
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -114,6 +114,22 @@ Regeln:
 
 **Erklärbarkeit:** SHAP; dominieren Helligkeit und Entfernung statt der Wackel-Features, lernt das Modell den Bias. Erwartung für Modell B: Wegen `ruwe_z` der Planetensterne von −0,03 lernt es vor allem den Survey-Bias; das ist als Beleg vorgesehen.
 
+### Konkurrenz-Listen (festgelegt vor dem Release)
+
+Die drei Listen liegen als Parquet mit `int64`-Gaia-IDs und SHA-256-Prüfsumme vor (`docs/competitors.json`, Abruf 2026-09-25):
+
+| Liste | Quelle | Umfang | Ordnung für die Auswertung |
+|---|---|---|---|
+| ExoDNN | Abreu et al. (2025), A&A 704, A150, VizieR `J/A+A/704/A150/exodnnv1` | 7.414 Sterne (unter 100 pc, F–M) | `PredProb1` absteigend, Gleichstand nach `source_id` |
+| Kiefer et al. | Kiefer et al. (2025), A&A 702, A77, VizieR `J/A+A/702/A77/tableb1` | 9.698 Kandidaten (G < 16, Begleitermasse unter 13,5 M_Jup) | `s_RUWE` absteigend, dann `Mplmin` aufsteigend, dann `source_id`. Der Katalog ist eine Menge und keine Rangliste; die Ordnung ist unsere dokumentierte Festlegung |
+| Sahlmann & Gómez | Sahlmann & Gómez (2025), MNRAS 537, 1130, Tabelle 4 (arXiv 2404.09350v2) | 22 Zeilen, abzüglich der zwei von Gaia zurückgezogenen Lösungen (54 Cas, BD+75 510) = 20 | ungeordnete Menge; P@20 als Anteil der 20 |
+
+Die Tabelle von Sahlmann & Gómez wurde aus dem Text des PDF gelesen (`pdftotext`), nicht aus einer maschinenlesbaren Quelle; sie wurde durch Zeilenzahl und die beiden zurückgezogenen Lösungen geprüft. Alle drei Listen benutzen DR3-Daten, wie unsere Listen, und lassen sich deshalb nur in der Auswertung DR3→DR4 vergleichen, nicht im Backtest DR2→DR3 (dort wäre es Leakage).
+
+Abdeckung in unserer Grundgesamtheit (`parallax_over_error >= 10`): ExoDNN 7.414 von 7.414, Kiefer 9.470 von 9.698, Sahlmann & Gómez 18 von 20. Davon haben 25, 26 und 8 Sterne schon eine DR3-Bahn unter 80 M_Jup oder sind bekannte Planetensterne.
+
+Asymmetrie, die im Bericht stehen muss: Die Liste von Sahlmann & Gómez besteht aus Sternen mit DR3-Bahnlösung, die sie als Planeten- oder Braune-Zwerg-Kandidaten einordnet. Sie sind nach unserer Regel „neue Treffer“ bekannte Fälle; ihre Liste wird deshalb nur in der Fassung „alle Treffer“ verglichen. ExoDNN sagt „Doppelstern-Begleiter“ voraus, nicht substellare Begleiter; Kiefer et al. suchen Planeten mit 1–3 AE, andere Grenzen als wir.
+
 ## Auswertungsskript
 
 Das Skript `src/gaia_wobble/evaluate_bet.py` wird zusammen mit den Listen eingefroren (derselbe Git-Tag). Es enthält alle Entscheidungen, die sonst erst nach dem Release fielen:
@@ -185,3 +201,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.14 | 2026-09-25 | Amplituden-Feature nach Mindestgüte angenommen, Score von Liste 2 festgelegt; Nachbar-Filter (2") für beide Listen | Mindestgüte (Median 0,58 in 0,5–2, ρ 0,92 > 0,6) erfüllt; Nachbar-Test im Backtest erfüllt die vorab festgelegte Regel (Verhältnis 0,11, p < 0,0001) |
 | 0.15 | 2026-09-25 | Hauptziel von Liste 2 um `ms_offset < 0,2` ergänzt; Ziel ohne die Bedingung zusätzlich berichtet | 13 von 17 Backtest-Zielen unter 13 M_Jup liegen 0,41–0,91 mag über der Hauptreihe (vermutlich leichte Doppelsterne) und sind für Liste 2 ausgeschlossen; Liste und Ziel sollen dieselbe Idee umsetzen |
 | 0.16 | 2026-09-25 | Auswertungsskript und seine Entscheidungen (Verknüpfung, Ziele, Ausschlüsse, Schema-Anpassung) festgeschrieben | Sonst würden diese Entscheidungen erst nach dem Release fallen |
+| 0.17 | 2026-09-25 | Konkurrenz-Listen (ExoDNN, Kiefer et al., Sahlmann & Gómez) beschafft, mit Prüfsumme abgelegt, Ordnungsregeln und Vergleichsbedingungen festgelegt | Vor dem Release festlegen, sonst wirken Ordnung und Auswahl nachträglich gewählt |
