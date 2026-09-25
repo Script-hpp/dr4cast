@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.12
+**Version:** 0.13
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -62,7 +62,20 @@ Vor dem Einfrieren zu klären (Teil des Manifests):
 - Die Ableitung Amplitude → Massenbereich ist neu. Sie wird gegen die Methode GaiaPMEX von Kiefer et al. (2025) geprüft (Masse und Bahnabstand aus RUWE, optional mit Hipparcos-Gaia-Bewegungsanomalie) und an den DR3-Bahnlösungen validiert, wo die Amplitude bekannt ist. Die Mindestgüte wird vor der ersten Auswertung im Log festgelegt. Die Validierung an den Bahnlösungen ist geschönt: Diese Sterne wackeln stark und haben Perioden im günstigen Bereich. Dass das Feature dort funktioniert, sagt nicht, dass es bei schwachen Signalen genauso gut ist.
 - **Rückfallregel (unabhängig vom Amplituden-Feature):** Erfüllt das Feature die Mindestgüte nicht, ist Liste 2 die Top 100 nach `P(substellar)` unter nahen, leichten Sternen: Sternmasse unter 0,6 Sonnenmassen und Entfernung unter 100 pc. Das benutzt nur die Physik (leichte, nahe Sterne zeigen den Planeten-Wackel am stärksten), keine Größe aus der Amplitudenrechnung.
 - **Sternmasse für alle Sterne** (nicht nur für Sterne mit NSS-Lösung): In der Wette FLAME-Massen aus `gaiadr3.astrophysical_parameters`, bei Lücken eine Masse-Helligkeits-Beziehung (Herkunft markiert). Im Backtest nur die Masse-Helligkeits-Beziehung mit DR2-Photometrie, weil FLAME ein DR3-Produkt ist und sonst Wissen aus der Zukunft einfließt.
+- **`ms_offset`-Regel für Liste 2:** Nur Sterne mit `ms_offset < 0,2` mag (nahe der Hauptreihe) können in Liste 2 stehen. Begründung: Das Modell bevorzugt Sterne über der Hauptreihe, die Ziele des Backtests liegen im Median bei 0,45 mag darüber (vermutlich leichte Doppelsterne mit zu klein geschätzter Masse), bestätigte astrometrische substellare Begleiter dagegen bei −0,08 (Quartile −0,46/0,17). Der Schwellwert 0,2 entspricht etwa dem oberen Quartil dieser bestätigten Begleiter und ist damit festgelegt, bevor Modell A auf DR3 angewendet wurde. Liste 1 bleibt ohne diese Regel (wir wetten auf das, was Gaia veröffentlicht, samt Verunreinigung).
 - **Grenze:** Liste 2 ist im Backtest mit nur 17 Treffern kaum validierbar. Sie ist bewusst eine Wette ins Unbekannte.
+
+### Modell A: festgelegte Variante
+
+Modell A ist die **Physik-Variante mit 9 Merkmalen**: `ruwe_z`, `ruwe_excess`, `astrometric_excess_noise_sig`, `wobble_ratio`, `ms_offset`, `chi2_per_dof`, `bp_rp`, `abs_g`, `pm_total`. Das Modell der Wette ist der Mittelwert der fünf Regions-Modelle aus der Kreuzvalidierung (`ablation_physics_fold0-4`), gewählt vor der ersten Anwendung auf DR3.
+
+Begründung (offen benannt: die Wahl fällt nach Blick auf die Ablationen; Leistung aller Varianten liegt im Streuungsbereich der Regionen, AP 0,037–0,043 gegenüber 0,032–0,058 je Region, sie wurde nicht nach der besten Zahl getroffen):
+- Gleiche Leistung im Rahmen der Streuung, weniger Merkmale, einfacher zu erklären.
+- Die ausgelassenen Merkmale (Parallaxen-Genauigkeit, Helligkeit, Beobachtungszahlen, Sichtbarkeitsperioden, rohe Wackelwerte, `parallax_over_error`) wachsen oder schrumpfen mit der Messdauer der Releases (22, 34, 66 Monate). Das Modell würde sonst bei der Übertragung in Bereiche geraten, die es im Training nie gesehen hat.
+- `wobble_ratio` bleibt drin, weil es die Messdauer des Releases explizit einrechnet (Periode gleich Messdauer) und das erwartete Fenster (auffällig, aber nicht zu stark) abbildet.
+- Die Variante mit 6 Merkmalen (ohne `wobble_ratio`, `abs_g`, `pm_total`) ist ähnlich gut, wird aber nicht gewählt, weil `wobble_ratio` für Liste 2 gebraucht wird.
+
+Bekanntes Risiko, das durch die Ablationen nicht sinkt: Die Auswahl von Gaia (erhöhtes Astrometrie-Rauschen) steckt in den Wackel-Statistiken selbst. Ein Modell, das das Wackeln nutzt, lernt diese Schwelle mit. Es überträgt sich auf DR4 nur, wenn Gaia dort ähnliche Schwellen benutzt.
 
 ### „Neue Treffer“ in der Wette
 
@@ -152,3 +165,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.10 | 2026-09-25 | Rückfallregel für Liste 2 unabhängig vom Amplituden-Feature (Sternmasse < 0,6 M_sun, unter 100 pc); Herkunft der Sternmassen (FLAME / Masse-Helligkeits-Beziehung, im Backtest nur DR2-Photometrie); GaiaPMEX als Vergleich; Grenze der Validierung an Bahnlösungen | Die alte Rückfallregel war zirkulär (dieselbe Rechnung wie das Feature) |
 | 0.11 | 2026-09-25 | Zusatzmetriken AUC, AP, Recall@1/5/10 % neben P@k und Recall@100 | Die RUWE-Baseline hat im Backtest P@100 = 0; ohne Kurvenmetriken lassen sich die Modelle nicht vergleichen. Festgelegt nach Blick auf die Baseline, vor jedem Modell |
 | 0.12 | 2026-09-25 | P@1000 als praxisnahe Zwischenstufe aufgenommen; Features `ms_offset`, `wobble_ratio`, `mass_ms` (physikalisch motiviert, je Release aus eigenen Daten) in die gemeinsamen Merkmale; Training mit regionaler Aufteilung (HEALPix) | Baseline: Extremwackler sind Doppelsterne, das Modell braucht ein Fenster; Gaias Messfehler sind regional korreliert |
+| 0.13 | 2026-09-25 | Modell A = Physik-Variante (9 Merkmale, Mittel der fünf Regions-Modelle); `ms_offset < 0,2` als Bedingung für Liste 2 | Ablationen: gleiche Leistung im Streuungsbereich; Beobachtungszahlen und Parallaxen-Fehler verändern sich mit der Messdauer der Releases; das Modell bevorzugt Sterne über der Hauptreihe, bestätigte dunkle Begleiter liegen darauf |
