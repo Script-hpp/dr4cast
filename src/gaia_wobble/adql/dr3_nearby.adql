@@ -1,0 +1,14 @@
+-- DR3 main catalogue, stars within ~200 pc, one HEALPix (level 2) chunk at a time.
+-- {lo}/{hi} (source_id range of one level-2 HEALPix pixel) are substituted by the downloader.
+SELECT
+  source_id, ra, dec, parallax, parallax_error, pmra, pmdec,
+  phot_g_mean_mag, phot_bp_mean_mag, phot_rp_mean_mag, bp_rp, phot_g_n_obs,
+  ruwe, astrometric_excess_noise, astrometric_excess_noise_sig,
+  astrometric_chi2_al, astrometric_n_obs_al, astrometric_n_good_obs_al,
+  astrometric_params_solved, visibility_periods_used,
+  ipd_gof_harmonic_amplitude, ipd_frac_multi_peak, ipd_frac_odd_win,
+  nu_eff_used_in_astrometry, pseudocolour, ecl_lat,
+  non_single_star, radial_velocity, rv_nb_transits
+FROM gaiadr3.gaia_source
+WHERE parallax >= 5
+  AND source_id >= {lo} AND source_id < {hi}

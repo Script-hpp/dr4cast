@@ -1,0 +1,13 @@
+data
+data/
+.venv/
+__pycache__/
+*.parquet
+*.duckdb
+*.fits
+*.csv.gz
+.ipynb_checkpoints/
+.env
+secrets.env
+*.env
+!.env.example
