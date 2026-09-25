@@ -473,3 +473,13 @@ Gerechnet nach `docs/simulation_plan.md` (Kriterien, Teilung, erlaubte Anpassung
 - Der Plan erlaubt an den Kalibrierteilen nur die Normierung `k(G)` und den Faktor `s`. Ein zusätzliches Rausch-Term wäre eine Änderung des Modells und keine der erlaubten Anpassungen; der Testteil wurde außerdem schon einmal angesehen.
 
 **Folgen:** Die Simulation liefert keine Aussage darüber, ob eine Variante des Liste-2-Scores Planeten weiter nach oben sortiert. Liste 1, Liste 2, Manifest und Auswertungsskript sind unverändert. Wer die Simulation retten will, braucht ein erweitertes Rauschmodell (Excess Noise aus Lage und Kalibrierung) und **eine neue, unabhängige Testprobe**, weil die jetzige einmal angesehen wurde; beides wäre ein neuer, vor den Ergebnissen festgelegter Plan.
+
+### Simulation für Liste 2: ruht bis nach dem Release von DR4 (Entscheidung 2026-09-26)
+
+Kurzfassung für den Bericht: *Die Simulation trifft die Höhe des RUWE bei Sternen mit Bahnlösung (Median-Verhältnis 0,998, Rangkorrelation 0,84), aber nicht die Streuung. Wahrscheinliche Ursache ist ein fehlender Rauschterm für Lage und Kalibrierung des Satelliten. Nach der vorab festgelegten Regel wurde sie nicht für die Score-Frage benutzt.* Die Liste 2 ist davon nicht betroffen; die Simulation war eine Zusatzauswertung.
+
+Warum warten: Mit DR4 liegen erstmals die Einzelmessungen aller Sterne vor. Das fehlende Rauschen lässt sich dann an echten Zeitreihen messen (Streuung um die gerade Bahn nach Helligkeit und Farbe), statt es aus den Zusammenfassungen von DR3 zu schätzen.
+
+**Offene Frage, jetzt nicht untersucht:** Bei Gaia-5 b liegt der echte RUWE (3,55) *über* der Simulation mit Gaias eigener DR3-Bahn (1,63 bis 2,11); fehlendes Rauschen erklärt das womöglich nicht allein (Periode 358 Tage nahe einem Jahr, Fit-Entartung mit der Parallaxe, Abweichung der DR3-Lösung von der tatsächlichen Bahn). Für später festgehalten.
+
+**Für den Neustart** (neuer Plan **vor** den Ergebnissen): (1) Rauschterm an den DR4-Einzelmessungen kalibrieren; (2) eine frische, bisher nicht angesehene Testprobe aus DR4-Bahnlösungen (die Testhälften von 2026-09-26 sind einmal angesehen und dürfen nicht wiederverwendet werden); (3) die festgeschriebenen Kriterien N, C, A und B neu bewerten, erst dann Produktionsläufe; (4) der Generator (`src/gaia_wobble/simulation/`) bleibt die Grundlage und wird mit echten DR4-Daten kalibriert.
