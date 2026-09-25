@@ -40,7 +40,37 @@ def download_full_tables(out_dir=RAW / "dr3_tables") -> None:
 
 def download_dr2() -> None:
     download_chunked((ADQL_DIR / "dr2_nearby.adql").read_text(), RAW / "dr2_nearby")
-    download_chunked((ADQL_DIR / "dr2_neighbourhood.adql").read_text(), RAW / "dr2_neighbourhood")
+
+
+LINK_QUERY = """SELECT n.dr2_source_id, n.dr3_source_id, n.angular_distance, n.magnitude_difference,
+       n.proper_motion_propagation
+FROM gaiadr3.dr2_neighbourhood AS n JOIN tap_upload.ids AS u ON u.source_id = n.dr3_source_id"""
+
+
+def download_dr2_links(out=RAW / "dr2_links" / "orbit_solutions.parquet", batch=20_000) -> None:
+    """DR2<->DR3 links (dr2_neighbourhood, the only allowed link) for DR3 sources with an Orbital* NSS solution.
+
+    Only these rows are needed to attach DR3 outcomes to DR2 stars; the full table covers the whole sky.
+    The ids are uploaded to the archive (TAP upload) in batches.
+    """
+    import duckdb
+    import numpy as np
+    from astropy.table import Table, vstack
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    if out.exists():
+        return
+    ids = duckdb.sql(
+        f"SELECT DISTINCT source_id FROM '{RAW}/nss/nss_two_body_orbit.parquet' "
+        "WHERE nss_solution_type LIKE 'Orbital%' ORDER BY source_id"
+    ).fetchnumpy()["source_id"].astype("int64")
+    parts = []
+    for i in range(0, len(ids), batch):
+        parts.append(run_async(LINK_QUERY, uploads={"ids": Table({"source_id": ids[i : i + batch]})}, wall_clock=900))
+        print(f"links: {i + len(ids[i : i + batch])}/{len(ids)} ids, {sum(len(x) for x in parts)} rows")
+    tab = to_arrow(vstack(parts))
+    pq.write_table(tab, out)
+    print(f"dr2 links: {tab.num_rows} rows")
 
 
 HGCA_URL = "http://physics.ucsb.edu/~tbrandt/{}.fits"  # Brandt; DR2 edition (2018) and EDR3 edition (2021)
@@ -105,3 +135,4 @@ if __name__ == "__main__":
     download_full_tables()
     download_hgca()
     download_dr2()
+    download_dr2_links()
