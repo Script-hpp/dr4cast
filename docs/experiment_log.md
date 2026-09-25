@@ -264,3 +264,23 @@ Befunde:
 4. Keine jungen Sterne. Weiße Zwerge und Veränderliche sind nicht überrepräsentiert.
 
 Noch nicht gemacht: Abgleich mit ExoDNN, Sahlmann & Gómez und dem Kiefer-Katalog (Listen nicht beschafft; ein Abgleich ist keine Validierung, weil die Methoden ähnliche Daten nutzen). Liste 2 besteht bisher nur aus Liste 1 mit dem Filter `ms_offset < 0,2`; die im Manifest vorgesehene Massen-Wahrscheinlichkeit aus der Wackel-Amplitude ist noch nicht gebaut.
+
+## 2026-09-25 – Vorab-Regel für den Nachbar-Test im Backtest (vor dem Ergebnis festgelegt)
+
+Frage: Sind Sterne mit einem Nachbarn innerhalb von 2" (in Gaia DR2, nur DR2-Daten) seltener echte Treffer des Backtest-Ziels? Beobachtung in DR3: 31 % der Top 100 haben einen solchen Nachbarn, in einer angepassten Kontrollgruppe 15 %.
+
+Test: DR2-Out-of-Fold-Scores der Physik-Variante; Treffer-Anteil (Ziel unter 80 M_Jup) unter den Top 2.000 mit und ohne Nachbar. Entscheidungsregel: Ein Filter „Nachbar innerhalb von 2" ausschließen“ wird nur dann ins Manifest aufgenommen, wenn der Treffer-Anteil mit Nachbar höchstens die Hälfte des Anteils ohne Nachbar beträgt und der exakte Test nach Fisher p < 0,01 ergibt. Sonst bleibt der Nachbar eine reine Diagnose im Bericht.
+
+## 2026-09-25 – Amplituden-Feature für Liste 2: Methode und Mindestgüte (vor der Berechnung festgelegt)
+
+**Quelle der Methode:** Kiefer et al., „Searching for substellar companion candidates with Gaia. I. Introducing the GaiaPMEX tool“ (arXiv 2409.16992, A&A). Gelesen: Abschnitte 2–3 (Gleichungen 1–14). Relevant: `AEN² + σ_att² + σ_AL² = Σ R² / (N − 5)` (Gl. 2), `ruwe ≈ (1/u0) · sqrt((AEN² + σ_formal²) / σ_formal²)` (Gl. 4), `σ_formal = AEN · (χ²_astro / (N − 5) − 1)^(−1/2)` (Gl. 8, aus Katalogdaten für Quellen mit `astrometric_excess_noise_sig >= 2`), typischer Wert von σ_formal 0,08–0,3 mas in Abhängigkeit von Helligkeit, Farbe und Himmelsposition (Abb. 2). Ihre Warnung: In DR3 ist der `astrometric_excess_noise` für viele Quellen mit G > 13 fälschlich 0 (χ² unter dem 95. Perzentil), deshalb ist er dort unzuverlässig. Sie beschreiben nur das Prinzip der GaiaPMEX-Simulation (Bayes, simulierte Beobachtungen); den Code habe ich nicht.
+
+**Unser Verfahren (keine Kurve aus dem Gedächtnis):**
+1. `σ_formal` je Release aus dem eigenen Katalog nach Gl. 8, Mediane je Bin aus G (0,25 mag) und BP-RP (0,25).
+2. `AEN_est = σ_formal · sqrt(max(χ²/(N − 5) − 1, 0))`: die Umkehrung von Gl. 8, auch dort verfügbar, wo der Katalogwert 0 ist.
+3. Amplitude `a_est = sqrt(2) · AEN_est` (für eine Kreisbahn ist die Streuung der Residuen `a/sqrt(2)`; gilt für Perioden innerhalb der Messdauer, sonst wird ein Teil der Bahn vom Fit aufgenommen und `a_est` ist zu klein).
+4. Aus `a_est`, Parallaxe und Sternmasse (`mass_ms`) der Bereich möglicher Begleitermassen für Perioden zwischen 0,5 und 5 Jahren (Kepler wie in `masses.py`); `P(m2 < 13 M_Jup)` ist der Anteil dieses (logarithmisch gleichverteilten) Periodenbereichs mit einer Masse unter 13 M_Jup.
+
+**Mindestgüte (vor der Berechnung festgelegt):** Validierung an den DR3-`Orbital`-Lösungen mit Massenschätzung (bekannte Photozentrum-Amplitude `a0` aus den Thiele-Innes-Elementen). Das Feature gilt als tauglich, wenn (a) der Median des Verhältnisses `a_est / a0` zwischen 0,5 und 2 liegt und (b) die Spearman-Rangkorrelation zwischen `a_est` und `a0` über 0,6 liegt. Getrennt berichtet nach Helligkeitsklasse und Periode. Erfüllt das Feature das nicht, bleibt Liste 2 „Liste 1 mit `ms_offset`-Filter“ und das steht so im Manifest.
+
+Einschränkungen, die vorab feststehen: Die Validierung an Bahnlösungen ist geschönt (starke Wackler, Perioden im günstigen Bereich); die Amplitude wird für Perioden über der Messdauer unterschätzt; `σ_formal` hängt bei Kiefer et al. auch von der Himmelsposition ab (bis Faktor 2, dichte Felder), wir nutzen nur Helligkeit und Farbe.
