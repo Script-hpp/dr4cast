@@ -96,3 +96,23 @@ DR2↔DR3-Verknüpfung (`dr2_neighbourhood`, über TAP-Upload für alle 135.760 
 Die Recall-Basis im Backtest ist 1.304 (bzw. 17). Die Sorge, die DR2-Stichprobe verliere viele Wackelsterne, bestätigt sich für die Ziele kaum: Nur zwei bis drei der 1.306 gehen verloren, und alle Ziele bestehen den DR2-Filter. Die DR2-Parallaxe der Ziele ist offenbar meist gut genug. Für die restlichen 199 Ziele gilt weiter: Parallaxe unter 5 mas.
 
 Offen für Liste 2: Der Kiefer-et-al.-Katalog (A&A 702, A77, 2025; 9.698 Kandidaten, G < 16, Begleiter unter 13,5 M_Jup, 1–3 AE) ist vermutlich über Zenodo (Anhänge als PDF) und/oder VizieR erhältlich. Ob eine maschinenlesbare Tabelle existiert, ist nicht bestätigt (VizieR-Suche ohne Treffer).
+
+## 2026-09-25 – DR2-Parallaxen der Ziele, Gaias Auswahl, RUWE-Kalibrierung DR2
+
+**Warum die Ziele den DR2-Filter bestehen.** `parallax_over_error` in DR2 bei den 1.304 erreichbaren Zielen unter 80 M_Jup: Minimum 25,1, 5. Perzentil 67,4, Median 150,8 (zum Vergleich: Median der ganzen DR2-Stichprobe 7,1). Median-Parallaxe 10,4 mas (ca. 96 pc), Median G = 14,7. Die Ziele sind also nahe Sterne mit sehr genauer Parallaxe, selbst ein aufgeblähter Fehler senkt `parallax_over_error` nicht unter 25.
+
+**Das Ziel ist teilweise durch Gaias eigene Auswahl definiert.** Gaia hat in DR3 Bahnlösungen nur für Sterne gerechnet, die bestimmte Kriterien erfüllten (u. a. erhöhter RUWE, ausreichende Helligkeit und Messqualität). Das Ziel heißt genau genommen: „Stern, den Gaias Pipeline ausgewählt hat und bei dem sie einen substellaren Begleiter fand“. Das ist für die Wette richtig, denn gemessen wird gegen Gaias Veröffentlichung. Folgen: (1) Das Modell lernt neben der Physik auch Gaias Auswahlkriterien mit; ein hohes `parallax_over_error` ist schon eine Eigenschaft der Zielsterne (Median 151 gegenüber 7,1). (2) Ändert Gaia die Kriterien für DR4, kann sich das Verhalten des Modells verschieben. Das ist eine bekannte Grenze neben der längeren Messzeit.
+
+**Kalibrierung DR2** (`ruwe_grid_dr2.parquet`, `ruwe_features_dr2.parquet`; gleicher Code wie DR3): 5.960.755 Sterne, 888 Zellen; 5.946.344 Sterne nutzen eine Zelle, 14.156 den G-Streifen, 255 den globalen Wert. Der rohe RUWE-Median steigt von 1,03 (G = 6–10) auf 1,67 (G = 18–20, dort 62 % über 1,4); nach der Kalibrierung liegt `ruwe_z` in jedem Bereich bei 0,00 (Ausnahme G < 4, weniger als 600 Sterne).
+
+Signal in DR2 (`ruwe_z`, Median und Anteil über 3):
+
+| Gruppe | Sterne | Median | Anteil über 3 | DR3 zum Vergleich |
+|---|---|---|---|---|
+| alle | 5.960.755 | 0,00 | 6,0 % | 6,7 % |
+| bekannte Planetensterne (`disc_year <= 2017`) | 674 | −0,08 | 1,2 % | 0,9 % |
+| Ziele unter 80 M_Jup | 1.304 | 1,43 | 22,4 % | 47 % |
+| Ziele unter 13 M_Jup | 17 | 0,24 | 0 % | – |
+| `Orbital` insgesamt (mit Verknüpfung) | 9.891 | 3,58 | 56 % | 74 % |
+
+Befunde: (1) Das Wackel-Signal ist in DR2 deutlich schwächer als in DR3, wie erwartet (kürzere Messdauer). (2) Die 17 Ziele unter 13 M_Jup zeigen in DR2 im RUWE praktisch kein Signal (Median 0,24, keiner über 3): Für Liste 2 trägt RUWE allein im Backtest nicht; die Validierung stützt sich auf andere Größen. (3) Die bekannten Planetensterne bleiben unauffällig, wie in DR3.
