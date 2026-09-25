@@ -64,3 +64,24 @@ Code unter `src/gaia_wobble/simulation/`, Konfiguration unter `configs/`, Ergebn
 - **`astrometric_excess_noise_sig`** wird nicht ausgegeben. Ersatz: empirische Abbildung von `astrometric_excess_noise` auf die Signifikanz über die Nullprobe.
 
 Die Schritte 1 bis 4 des Plans bleiben unverändert. Zum Realitätscheck kommt hinzu, dass die Nullprobe (Schritt 1, Punkt 1) auch die beiden Ersatzgrößen kalibriert. Gaia-4 b und Gaia-5 b werden mit den Bahnelementen aus dem NASA Exoplanet Archive und den Entdeckungsarbeiten simuliert (noch nicht abgerufen).
+
+## Scan-Muster: Entscheidung (2026-09-25, vor jedem `astromet`-Lauf)
+
+**Quelle:** das Paket `gaiascanlaw` 0.2.0 (Penoyre, vom Autor von `astromet`; GPL-3.0, externe Abhängigkeit im `uv`-Extra `simulation`, nicht ins Repository kopiert). Es liefert für eine Position (Rektaszension, Deklination) die Zeiten und Winkel der nominellen Gaia-Übergänge, seine Daten stammen aus dem Gaia Observation Forecast Tool (GOST) der ESA. Eine händische Abfrage von GOST ist damit nicht nötig. Die Zeiträume kennt das Paket selbst: Beginn 2014,563, Ende von DR3 2017,404 (`tdr3`), Ende von DR4 2020,054 (`tdr4`), Ende der Daten 2025,039 (`tdr5`). Der DR4-Zeitraum (66 Monate) ist also abgedeckt; die Näherung ist nicht die Zeit, sondern dass es das **nominelle** Scan-Gesetz ist (die tatsächliche Ausrichtung des Satelliten weicht laut Dokumentation der verwandten `scanninglaw`-Pakete bis zu etwa 30 Bogensekunden ab, was hier keine Rolle spielt).
+
+**Gelesen bzw. geprüft:** README von `gaiascanlaw`, seine Konstanten und die Signatur `scanlaw(ra, dec, tstart, tend, ccd_row, obstype)`. Vergleich mit den echten DR3-Zahlen für die beiden Kontrollplaneten:
+
+| Stern | echte Übergänge in DR3 (`astrometric_n_obs_al / 9`) | Vorhersage DR3-Zeitraum (alle / nur Astrometrie) | Vorhersage DR4-Zeitraum |
+|---|---|---|---|
+| Gaia-5 | 47 | 47 / 43 | 98 / 94 |
+| Gaia-4 | 52 | 57 / 45 | 111 / 99 |
+
+Die nominelle Vorhersage trifft die Übergangszahl im Rahmen von etwa 10 %, im DR4-Zeitraum sind es rund doppelt so viele wie in DR3, wie bei 66 statt 34 Monaten zu erwarten.
+
+**Regel (festgelegt):**
+1. `obstype='astrometry'` (schließt bekannte Datenlücken aus).
+2. Für jeden Wirtsstern werden die nominellen Übergänge im DR3-Zeitraum zufällig auf die **echte** Zahl der Übergänge des Sterns in DR3 (`astrometric_n_obs_al / 9`) ausgedünnt (ohne Zurücklegen); ist die Vorhersage kleiner als die echte Zahl, werden alle genommen und der Stern in der Nullprobe markiert.
+3. Für den DR4-Zeitraum werden die nominellen Übergänge mit demselben Anteil ausgedünnt (echte Zahl geteilt durch nominelle Zahl im DR3-Zeitraum), so dass Lücken, die im Mittel für diesen Stern gelten, erhalten bleiben. Die Zahl der Übergänge im DR4-Zeitraum ist damit eine Näherung, im Bericht als solche genannt.
+4. Je Übergang neun Einzelmessungen (`nmeasure = 9`, wie in `astromet.mock_obs` und wie `astrometric_n_obs_al = 9 · Übergänge` im Katalog).
+
+Der Realitätscheck (Schritt 1 des Plans) prüft zusätzlich, ob die nominelle Übergangszahl über die ganze Nullprobe zur echten passt (Median des Verhältnisses und 16./84. Perzentil werden im Log berichtet).
