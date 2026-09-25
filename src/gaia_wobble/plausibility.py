@@ -12,7 +12,7 @@ CONTROL = {"Gaia-4 b": 1457486023639239296, "Gaia-5 b": 2074815898041643520}
 
 def dr3_control_ranks() -> None:
     """Ranks of the control planets among all DR3 stars for the list-1 and list-2 scores (they are excluded from training and lists)."""
-    d = score_dr3(min_poe=0)  # no quality filter so that they are always present
+    d = score_dr3(min_poe=10)  # same population and quality filter as the lists (MANIFEST)
     a = pd.read_parquet(PROCESSED / "amplitude_dr3.parquet")[["source_id", "p13"]]
     d = d.merge(a, on="source_id")
     d["score2"] = np.where(d.ms_offset < 0.2, d.score * d.p13, np.nan)

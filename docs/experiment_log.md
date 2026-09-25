@@ -313,12 +313,12 @@ Die Amplitude wird im Median um etwa 40 % unterschätzt (Vorfaktor `sqrt(2)` fü
 
 **Generator:** Beide Listen in einem Lauf aus demselben Stand. Liste 1: Score `P_A`; Liste 2: `P_A · P(m2 < 13 M_Jup)`, nur `ms_offset < 0,2`. Ausgeschlossen aus `rank_new` (Rang der Hauptmetrik): bekannte DR3-Bahn unter 80 M_Jup, bekannte Planetensterne, Gaia-Nachbar innerhalb von 2". Je Liste die ersten 1.000 Zeilen nach `rank_new`; die eingefrorene Wette sind die ersten 100. Jede Zeile hat `source_id`, `rank_new`, `rank_raw`, Score, beide Teilwerte und die Markierungen `known_dr3_orbit80`, `known_dr3_orbit_any`, `dr3_acceleration`, `known_planet`, `neighbour_2arcsec`. Kopf der Datei: Manifest-Version, Datum, Git-Stand, Beschreibung des Scores; daneben `.sha256` je Liste und `lists_manifest.json` (Prüfsummen der Modelle, der Feature-Tabellen, der Nachbartabelle). Datum und Git-Stand sind Parameter, dadurch entstehen bei gleichen Eingaben byte-identische Dateien (Test `test_make_lists.py`, beide Listen zweimal erzeugt und verglichen). Die Nachbartabelle wird einmal beim Archiv abgefragt und mit dem Listenpaket zwischengespeichert; ohne diesen Zwischenspeicher wäre die Liste vom Archiv abhängig. Die Werte sind Ordnungs-Scores, keine kalibrierten Wahrscheinlichkeiten (Verzerrung der Amplitude um etwa 40 %, siehe oben); im Bericht wird „Score“ geschrieben.
 
-**Kontrollplaneten** (nicht im Training, nicht als bekannt ausgeschlossen; alle 5.244.458 DR3-Sterne ohne Qualitätsfilter):
+**Kontrollplaneten** (nicht im Training, nicht als bekannt ausgeschlossen; Grundgesamtheit wie in den Listen: 2.234.316 DR3-Sterne mit `parallax_over_error >= 10`, davon 1.488.768 mit `ms_offset < 0,2`; ein erster Lauf hatte ohne Filter gerechnet, gleiche Ränge, andere Nenner, korrigiert):
 
 | Planet | `parallax_over_error` | G | `ms_offset` | `P(m2 < 13)` | Rang Score Liste 1 | Rang Score Liste 2 |
 |---|---|---|---|---|---|---|
-| Gaia-4 b (11,8 M_Jup) | 650 | 11,9 | −0,06 | 0,80 | 81.298 (1,6 %) | 6.244 von 3.810.363 (0,2 %) |
-| Gaia-5 b (20,9 M_Jup) | 673 | 13,2 | −0,58 | 0,84 | 6.430 (0,1 %) | 532 von 3.810.363 (0,014 %) |
+| Gaia-4 b (11,8 M_Jup) | 650 | 11,9 | −0,06 | 0,80 | 81.298 (3,6 %) | 6.244 von 1.488.768 (0,4 %) |
+| Gaia-5 b (20,9 M_Jup) | 673 | 13,2 | −0,58 | 0,84 | 6.430 (0,3 %) | 532 von 1.488.768 (0,036 %) |
 
 Beide liegen im Score von Liste 2 im obersten Promille bis Prozent, besser als im Score von Liste 1, und beide erfüllen die `ms_offset`-Regel. Die Bewertung ist ein Einzelfall mit zwei Sternen und keine Validierung.
 
@@ -326,3 +326,7 @@ Beide liegen im Score von Liste 2 im obersten Promille bis Prozent, besser als i
 - **Von den 17 Zielen unter 13 M_Jup erfüllen nur 4 die `ms_offset`-Regel**; die Regel entfernt also 13 der 17 Ziele (und 409 von 1.304 Zielen unter 80 M_Jup bleiben). Das passt zur Deutung, dass die Ziele meist über der Hauptreihe liegen (Verunreinigung durch leichte Doppelsterne); es heißt aber auch, dass die Backtest-Validierung von Liste 2 auf 4 Sternen beruht.
 - Score von Liste 2: Treffer unter 13 M_Jup in den Top 100/1000/10000: 0/2/2; mittlerer Rang der 4 Ziele 9.540 von 1.541.482. Score von Liste 1 auf derselben Menge: 0/0/2, mittlerer Rang 27.129. Treffer unter 80 M_Jup in den Top 100/1000: Liste 2 2/38, Liste 1 9/77.
 - 2 von 4 Zielen in den Top 1000 von 1,5 Mio. (Erwartung bei Zufall: 0,003) ist eine deutliche Anreicherung, bleibt aber bei 4 Zielen eine Tendenz ohne Signifikanzaussage.
+
+**Einordnung:** Gaia-4 b (Rang 6.244) und Gaia-5 b (Rang 532) liegen deutlich besser als der Durchschnitt, kämen aber in keine Top-100-Liste. Die Richtung stimmt, das Netz aus 100 Sternen ist eng. Der Bericht sagt das so.
+
+**Ziel von Liste 2 (Manifest 0.15).** Von den 17 Zielen unter 13 M_Jup haben 4 ein `ms_offset < 0,2` (−0,31, −0,20, 0,01, 0,07); die übrigen 13 liegen bei 0,41 bis 0,91 mag (Werte 0,41 0,45 0,47 0,51 0,52 0,57 0,60 0,60 0,68 0,77 0,85 0,87 0,91), alle mit `parallax_over_error` zwischen 282 und 1.298. Das entspricht der Deutung, dass diese Ziele überwiegend leichte, unaufgelöste Doppelsterne sind (ein gleich heller Doppelstern liegt 0,75 mag über der Hauptreihe). Für das Ziel unter 80 M_Jup erfüllen 430 von 1.306 die Bedingung.

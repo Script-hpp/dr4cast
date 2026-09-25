@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.14
+**Version:** 0.15
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -17,7 +17,7 @@ Das Manifest darf jederzeit angepasst werden, solange wir lernen. Die Glaubwürd
 
 | Regel | Festlegung |
 |---|---|
-| Hauptziel (zwei gleichrangige Listen) | Stern hat in DR4 eine Bahnlösung (`nss_two_body_orbit` oder `nss_multiple_orbits`) mit Begleitermasse nach der eigenen Schätzung (siehe „Massenschätzung und Ziele“). **Liste 1:** unter 80 Jupitermassen. **Liste 2 („Planetenliste“):** unter 13 Jupitermassen. `nss_masses` zusätzlich als Vergleich |
+| Hauptziel (zwei gleichrangige Listen) | Stern hat in DR4 eine Bahnlösung (`nss_two_body_orbit` oder `nss_multiple_orbits`) mit Begleitermasse nach der eigenen Schätzung (siehe „Massenschätzung und Ziele“). **Liste 1:** unter 80 Jupitermassen. **Liste 2 („Planetenliste“):** unter 13 Jupitermassen **und** `ms_offset` unter 0,2 mag (mit den Werten des jeweiligen Releases; „dunkler Begleiter mit Planetenmasse“). Zusätzlich berichtet: das Ziel unter 13 Jupitermassen ohne `ms_offset`-Bedingung. `nss_masses` zusätzlich als Vergleich |
 | Nebenziel | Auswertung getrennt nach Helligkeitsklassen und nach `OrbitalTargetedSearch`; ESA-Massen aus `nss_masses` |
 | Offizielle ESA-Liste | Falls veröffentlicht: zusätzliche Auswertung, ersetzt nicht das Hauptziel |
 | Verknüpfung DR3→DR4 | Nur über die Tabelle `dr3_neighbourhood`, nie über gleiche `source_id` |
@@ -79,6 +79,10 @@ Begründung (offen benannt: die Wahl fällt nach Blick auf die Ablationen; Leist
 - Die Variante mit 6 Merkmalen (ohne `wobble_ratio`, `abs_g`, `pm_total`) ist ähnlich gut, wird aber nicht gewählt, weil `wobble_ratio` für Liste 2 gebraucht wird.
 
 Bekanntes Risiko, das durch die Ablationen nicht sinkt: Die Auswahl von Gaia (erhöhtes Astrometrie-Rauschen) steckt in den Wackel-Statistiken selbst. Ein Modell, das das Wackeln nutzt, lernt diese Schwelle mit. Es überträgt sich auf DR4 nur, wenn Gaia dort ähnliche Schwellen benutzt.
+
+### Ziel von Liste 2 (Ergänzung 0.15)
+
+Die Liste 2 lässt nur Sterne mit `ms_offset < 0,2` zu. Von den 17 Backtest-Zielen unter 13 M_Jup erfüllen nur 4 diese Bedingung (DR3-Werte); die anderen 13 liegen 0,41 bis 0,91 mag über der Hauptreihe, wie unaufgelöste Doppelsterne mit zu klein geschätzter Masse. Gemessen am Ziel ohne Bedingung würde Liste 2 schlecht abschneiden, weil die meisten Treffer des Ziels Sterne sind, die sie nicht auswählen darf. Deshalb gilt für Liste 2 als Hauptziel: DR4-Bahn, geschätzte Masse unter 13 M_Jup **und** `ms_offset < 0,2` (berechnet mit den DR4-Werten nach der Methode dieses Manifests). Das bisherige Ziel ohne die Bedingung wird zusätzlich berichtet. Im Backtest entspricht das 4 Zielen (bzw. 430 von 1.306 für das Ziel unter 80 M_Jup mit derselben Bedingung), also einer Tendenz ohne Signifikanzaussage. Beide Fassungen und diese Begründung stehen vor der Anwendung auf DR4 fest.
 
 ### „Neue Treffer“ in der Wette
 
@@ -170,3 +174,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.12 | 2026-09-25 | P@1000 als praxisnahe Zwischenstufe aufgenommen; Features `ms_offset`, `wobble_ratio`, `mass_ms` (physikalisch motiviert, je Release aus eigenen Daten) in die gemeinsamen Merkmale; Training mit regionaler Aufteilung (HEALPix) | Baseline: Extremwackler sind Doppelsterne, das Modell braucht ein Fenster; Gaias Messfehler sind regional korreliert |
 | 0.13 | 2026-09-25 | Modell A = Physik-Variante (9 Merkmale, Mittel der fünf Regions-Modelle); `ms_offset < 0,2` als Bedingung für Liste 2 | Ablationen: gleiche Leistung im Streuungsbereich; Beobachtungszahlen und Parallaxen-Fehler verändern sich mit der Messdauer der Releases; das Modell bevorzugt Sterne über der Hauptreihe, bestätigte dunkle Begleiter liegen darauf |
 | 0.14 | 2026-09-25 | Amplituden-Feature nach Mindestgüte angenommen, Score von Liste 2 festgelegt; Nachbar-Filter (2") für beide Listen | Mindestgüte (Median 0,58 in 0,5–2, ρ 0,92 > 0,6) erfüllt; Nachbar-Test im Backtest erfüllt die vorab festgelegte Regel (Verhältnis 0,11, p < 0,0001) |
+| 0.15 | 2026-09-25 | Hauptziel von Liste 2 um `ms_offset < 0,2` ergänzt; Ziel ohne die Bedingung zusätzlich berichtet | 13 von 17 Backtest-Zielen unter 13 M_Jup liegen 0,41–0,91 mag über der Hauptreihe (vermutlich leichte Doppelsterne) und sind für Liste 2 ausgeschlossen; Liste und Ziel sollen dieselbe Idee umsetzen |
