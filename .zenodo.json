@@ -1,0 +1,27 @@
+{
+  "title": "dr4cast: a pre-registered forecast of Gaia DR4 substellar companions",
+  "upload_type": "dataset",
+  "description": "Two ranked lists of Gaia DR3 stars that a machine-learning model expects to receive an orbit solution with a substellar companion in Gaia DR4 (below 80 and below 13 Jupiter masses), published with SHA-256 checksums before the DR4 release. Includes the pre-registered manifest, the backtest DR2 to DR3, the experiment log and the evaluation script that will be applied to DR4. Code: MIT; lists and documentation: CC BY 4.0.",
+  "creators": [
+    {
+      "name": "Akca, Onuralp"
+    }
+  ],
+  "license": "cc-by-4.0",
+  "keywords": [
+    "Gaia",
+    "astrometry",
+    "exoplanets",
+    "brown dwarfs",
+    "pre-registration",
+    "machine learning"
+  ],
+  "access_right": "open",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Script-hpp/dr4cast",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

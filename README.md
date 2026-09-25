@@ -77,8 +77,8 @@ Please read the caveats before quoting these numbers:
   0.4–0.5 mag above the main sequence, like unresolved binaries with an underestimated companion mass. Confirmed dark companions sit
   on the main sequence. The bet is about Gaia's release, and the same contamination will be in DR4.
 - Part of the skill is Gaia's own selection (which stars get an orbit at all). Removing parallax- and brightness-based features costs
-  almost nothing, because the selection lives in the noise statistics themselves; the model does not transfer to DR4 if Gaia's
-  thresholds change.
+  almost nothing, because the selection lives in the noise statistics themselves; the model may transfer poorly to DR4 if Gaia's
+  thresholds change (we cannot know that before the release).
 - **List 2 has almost no backtest.** Only 17 DR3 targets are below 13 Jupiter masses, and only 4 of them are dark. It is a bet into
   the unknown, and it is labelled as such.
 - DR3's own mass table (`binary_masses`) contains no companion below 32 Jupiter masses, so companion masses are estimated from the orbit
@@ -108,11 +108,22 @@ a clean-room re-run of the whole chain in one go has not been done. Downloads ta
 
 ## Data and credits
 
-This work has made use of data from the European Space Agency (ESA) mission Gaia, processed by the Gaia Data Processing and Analysis
-Consortium (DPAC). Data and methods from: the Heidelberg ARI Gaia archive mirror, the NASA Exoplanet Archive, the Hipparcos-Gaia Catalog of
-Accelerations (Brandt 2018, 2021), the main-sequence table of E. Mamajek (Pecaut & Mamajek 2013), Kiefer et al. (2025, A&A 702, A77),
-Abreu et al. (2025, ExoDNN, A&A 704, A150) and Sahlmann & Gómez (2025, MNRAS 537, 1130). The wobble-amplitude estimate follows
-Kiefer et al. (2025, arXiv 2409.16992).
+**Gaia acknowledgement.** This work has made use of data from the European Space Agency (ESA) mission Gaia
+(<https://www.cosmos.esa.int/gaia>), processed by the Gaia Data Processing and Analysis Consortium (DPAC,
+<https://www.cosmos.esa.int/web/gaia/dpac/consortium>). Funding for the DPAC has been provided by national institutions, in particular
+the institutions participating in the Gaia Multilateral Agreement.
+
+Other data and methods:
+
+- Heidelberg ARI Gaia archive mirror (queries), NASA Exoplanet Archive (planet labels)
+- Hipparcos-Gaia Catalog of Accelerations (Brandt 2018 for the DR2 edition, Brandt 2021 for the EDR3 edition)
+- Main-sequence table of E. Mamajek, version 2022.04.16 (Pecaut & Mamajek 2013, ApJS 208, 9)
+- Kiefer et al., *Searching for substellar companion candidates with Gaia*: paper I (the GaiaPMEX method, arXiv 2409.16992), whose
+  Eq. 8 we use for the wobble amplitude; paper II (the catalogue of 9,698 candidates, arXiv 2409.16993, A&A 702, A77, 2025), used as a comparison list
+- Abreu et al. (2025), ExoDNN, A&A 704, A150 (comparison list)
+- Sahlmann & Gómez (2025), MNRAS 537, 1130 (comparison list)
+
+The comparison lists are not part of this repository: only the download script and the checksums (`docs/competitors.json`) are.
 
 ## Licence and citation
 

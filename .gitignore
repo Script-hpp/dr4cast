@@ -11,3 +11,4 @@ __pycache__/
 secrets.env
 *.env
 !.env.example
+!release/**/*.parquet

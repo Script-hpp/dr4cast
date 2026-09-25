@@ -90,7 +90,7 @@ def rank_list(df: pd.DataFrame, score: pd.Series, neighbours: pd.Series) -> pd.D
 
 
 def build_lists(out_dir: Path, date: str, commit: str, neighbour_cache: Path, pop: pd.DataFrame | None = None,
-                neighbour_fn=gaia_neighbours) -> dict:
+                neighbour_fn=gaia_neighbours, version: str | None = None) -> dict:
     """Write list1/list2 CSVs (with header block and .sha256 files) and lists_manifest.json into `out_dir`."""
     out_dir.mkdir(parents=True, exist_ok=True)
     pop = score_population() if pop is None else pop
@@ -138,6 +138,19 @@ if __name__ == "__main__":
     import sys
     from datetime import date as _date
 
-    out = PREDICTIONS / (sys.argv[1] if len(sys.argv) > 1 else "dev_lists")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    out = PREDICTIONS / (args[0] if args else "dev_lists")
+    if "--reproduce" in sys.argv:
+        # Rebuild a published bundle: reuse its date, code state, manifest version and neighbour table, then compare checksums.
+        ref = Path(sys.argv[sys.argv.index("--reproduce") + 1])
+        r = json.loads((ref / "lists_manifest.json").read_text())
+        out = Path(args[0]) if args else out
+        m = build_lists(out, r["date"], r["git_commit"], ref / "neighbours_dr3.parquet", version=r["manifest_version"])
+        for name, v in r["lists"].items():
+            print(f"{name}: {'MATCH' if m['lists'][name]['sha256'] == v['sha256'] else 'DIFFERENT'} {m['lists'][name]['sha256']}")
+        print("models:", "MATCH" if m["model_files"] == r["model_files"] else "DIFFERENT",
+              "| features:", "MATCH" if m["features_dr3_sha256"] == r["features_dr3_sha256"] else "DIFFERENT",
+              "| amplitude:", "MATCH" if m["amplitude_dr3_sha256"] == r["amplitude_dr3_sha256"] else "DIFFERENT")
+        raise SystemExit(0)
     m = build_lists(out, _date.today().isoformat(), git_state(), out / "neighbours_dr3.parquet")
     print(json.dumps({k: v for k, v in m.items() if k in ("date", "git_commit", "manifest_version", "lists")}, indent=2))
