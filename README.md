@@ -10,9 +10,10 @@ new astrometric orbit solutions. dr4cast trains a model on older data, publishes
 ![code](https://img.shields.io/badge/code-MIT-blue)
 ![lists](https://img.shields.io/badge/lists-CC%20BY%204.0-lightgrey)
 
-> **Status:** release candidate v1. The lists in [`release/v1/`](release/v1) are built but **not yet frozen**. They are frozen when
-> the Zenodo record is published; its DOI will be added here. After that, nothing about the lists, the manifest or the evaluation
-> script changes until DR4 (except the schema adaptations that the manifest allows).
+> **Status:** frozen. The lists in [`release/v1/`](release/v1), [`MANIFEST.md`](MANIFEST.md) (version 0.19) and the evaluation script
+> [`evaluate_bet.py`](src/gaia_wobble/evaluate_bet.py) are fixed by the GitHub release `v1.0` (2026-09-25); the Zenodo record and its DOI
+> will be added here. Until DR4 only clarifications and the schema adaptations allowed by the manifest are made, see
+> [`docs/clarifications_v1.md`](docs/clarifications_v1.md) (including the rule for the primary mass `m1`).
 
 ## The idea in one minute
 
@@ -30,6 +31,7 @@ The link between releases is made **only through the official neighbourhood tabl
 |---|---|
 | [`MANIFEST.md`](MANIFEST.md) | The pre-registered rules: targets, metrics, exclusions, comparison methods, evaluation. Versioned, every change is logged with its reason. |
 | [`release/v1/`](release/v1) | The two lists (1,000 stars each; the bet is the first 100), SHA-256 checksums, and the inputs' checksums. |
+| [`docs/clarifications_v1.md`](docs/clarifications_v1.md) | Clarifications and one addendum (primary mass `m1` for DR4), published after the freeze. They change no list, no manifest text and no evaluation code. |
 | [`src/gaia_wobble/evaluate_bet.py`](src/gaia_wobble/evaluate_bet.py) | The evaluation script that will be applied to DR4. It is frozen together with the lists. |
 | [`docs/experiment_log.md`](docs/experiment_log.md) | Everything learned before freezing, including the negative results. |
 
