@@ -1,0 +1,1 @@
+Lists, documentation and data files of this repository (release/, docs/, MANIFEST.md): Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/ (proposal, to be confirmed by the author before publishing).

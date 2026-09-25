@@ -1,0 +1,25 @@
+{
+  "amplitude_dr3_sha256": "7f0a6e831273fe973a268cd499695a7b0c484a4c4522644c3adbf6ae242a2581",
+  "date": "2026-09-25",
+  "features_dr3_sha256": "c69c59666ce71150b5266240cf19a3ebfafe70138ec2634351650066d92c4310",
+  "git_commit": "3e128b1bfb6307d10ea729ae131533238e9160dd",
+  "lists": {
+    "list1_substellar": {
+      "rows": 1000,
+      "sha256": "8cb67a02c6c757ba5cd4bdfaa3171367fb84f369c2ec60cadcd0784e1900256e"
+    },
+    "list2_planets": {
+      "rows": 1000,
+      "sha256": "9a7130bd01be7d04dd882482fa13d000a65976f5654beecab8d64a7bb967d05d"
+    }
+  },
+  "manifest_version": "0.19",
+  "model_files": {
+    "ablation_physics_fold0.txt": "7b9a22e9aa784fdf00dfc11baf0857a032c028e74c4259664c5fc621b44ba3df",
+    "ablation_physics_fold1.txt": "67edd73a943cd4ce6d1c904c5e306f81e44f8b02dc1e75b487382695362b2aba",
+    "ablation_physics_fold2.txt": "404100f0eab07ec150e180b81c377d14dc6e2de4ceaac0ba1f8261d737b8b2d1",
+    "ablation_physics_fold3.txt": "86cb1c51cd7321d5b0387815c2b8324bd3da2c0da48d475aec16499f573800e8",
+    "ablation_physics_fold4.txt": "a402a943a6cce0052497e32764fbd980570055b2b89cc3aba1e1e1351aaef4a8"
+  },
+  "neighbour_table_sha256": "78910fa4cfec3b37572b36c0e1b6dc25cd73bf9649a71d3a136ab79a944ee6ef"
+}
