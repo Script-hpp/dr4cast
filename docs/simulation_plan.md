@@ -110,3 +110,49 @@ Das Kriterium N oben verglich das 90. Perzentil des simulierten mit dem des echt
 
 - **N (neu):** Verglichen werden nur die Helligkeitsklassen G < 10, 10 bis 13 und 13 bis 16 (ab G = 16 ist ein großer Teil der echten Sterne durch Dichte und Rauschen gestört). Je Klasse muss das **75. Perzentil** des simulierten RUWE höchstens 10 % vom echten abweichen und die **Breite des mittleren Bereichs** (75. minus 25. Perzentil) höchstens 25 %. Der Median ist durch die Normierung festgelegt und zählt nicht. Das 90. und 99. Perzentil und die Klasse ab G = 16 werden berichtet, zählen aber nicht. Die Nullprobe wird auf die drei Klassen geschichtet (je 700 Sterne, 2.100 insgesamt).
 - Die Normierung `k(G)` benutzt weiter alle vier Helligkeitsklassen. Für G ≥ 16 ist sie eine Extrapolation der Fehlerkurve über den Bereich hinaus, den Kiefer et al. angeben, und wird so vermerkt.
+
+## Ergänzungen zum Realitätscheck und zur Auswertung (2026-09-26, vor der ersten berechneten Zahl)
+
+Diese Punkte präzisieren oder ergänzen den Plan oben; wo sie ihm widersprechen, gelten sie.
+
+**1. Bestehenskriterium mit Varianten aus den Unsicherheiten.**
+- Je Stern werden viele Varianten der Bahn gezogen, die zu den Unsicherheiten der Bahnelemente passen: bei den DR3-Bahnlösungen aus den veröffentlichten Fehlern der Thiele-Innes-Elemente (`a_thiele_innes_error` usw.), der Periode, Exzentrizität und Periastronzeit, als unabhängige Normalverteilungen (die Korrelationen `corr_vec` liegen bei uns nicht vor; die Verteilung ist damit etwas zu breit oder zu schmal, das wird genannt); bei den Elementen aus den Entdeckungsarbeiten aus den dort veröffentlichten Unsicherheiten (Check B). Je Variante zusätzlich unabhängige Rausch-Realisierungen.
+- Ein Stern besteht, wenn sein echter DR3-RUWE im mittleren 90-%-Bereich (5. bis 95. Perzentil) der so entstandenen simulierten Verteilung liegt.
+- Über viele Sterne werden berichtet: der **Anteil der Sterne im 90-%-Bereich** (Sollwert etwa 90 %; ein perfekt kalibriertes Modell träfe ihn) und der **Median des Verhältnisses simuliert durch echt**. Die Schwelle 70 % in Bedingung (iii) von C ist eine Untergrenze für „die Simulation ist brauchbar“; der Abstand zu 90 % wird berichtet und nicht wegdiskutiert.
+
+**2. Breiter Check.** C zieht 200 zufällige DR3-`Orbital`-Lösungen, geschichtet nach geschätzter Begleitermasse (5 Klassen), Helligkeit (4 Klassen) **und Periode** (3 Klassen: unter 200 d, 200 bis 500 d, über 500 d), zufällig innerhalb der Zellen; fehlt eine Zelle, wird aus den nächsten aufgefüllt. Gaia-4 b und Gaia-5 b werden zusätzlich als Einzelfälle geprüft: A (ihre DR3-Bahnlösungen) und B (die Elemente aus den Entdeckungsarbeiten), wie oben. Beide Sterne sind aus der Stichprobe von C ausgeschlossen und werden nirgends zum Anpassen benutzt.
+
+**3. Kalibrier- und Testteil (gegen Überanpassung).**
+- Die 200 Vergleichssterne von C und die 2.100 Sterne der Nullprobe werden vorab in einen Kalibrier- und einen Testteil geteilt, 50/50, nach Stern (kein Stern in beiden), Startwert 20260926 (`numpy.random.default_rng`). Die Teilung wird vor dem ersten Lauf erzeugt und mit Prüfsumme der ID-Listen abgelegt.
+- **Angepasst werden darf nur** (mit dem Kalibrierteil von Nullprobe und C): (a) die Normierung `k(G)` je Helligkeitsintervall, (b) ein globaler Faktor `s` für den Messfehler `σ_AL` aus dem Raster {0,8; 0,9; 1,0; 1,1; 1,25; 1,5}, gewählt so, dass das 75. Perzentil des simulierten RUWE in der Nullprobe des Kalibrierteils dem echten am nächsten kommt (Klassen G < 16).
+- **Alles andere bleibt fest:** Scan-Regel, Bahn-Generator und Zeitkonvention, Zahl der Messungen je Übergang, alle Kriterien und Schwellen, Startwerte.
+- **Fehlerklausel:** Stellt sich ein Umsetzungsfehler heraus (etwa eine falsche Zeitkonvention der Periastronzeit), darf er korrigiert werden, wenn er im Log mit Begründung steht und der Check danach nur am Kalibrierteil neu läuft; der Testteil wird erst mit dem endgültigen Stand ausgewertet und **einmal** angesehen. Alle Kriterien (N, A, B, C) werden am Testteil bewertet; A und B sind unabhängig von der Teilung.
+
+**4. Nullprobe als Gegenkontrolle.** Kriterium N (geändert oben) gilt: Sterne ohne Begleiter, RUWE-Verteilung nach Helligkeit gegen die echte Verteilung ruhiger Sterne, bewertet am Testteil.
+
+**5. Alle astrometrischen Merkmale von Modell A vergleichen.** Nicht nur RUWE, sondern für jeden Stern der Prüfungen N und C die simulierten Werte von `ruwe_z`, `ruwe_excess`, `astrometric_excess_noise_sig`, `chi2_per_dof` und `wobble_ratio` gegen die echten Werte (Median des Verhältnisses und Rangkorrelation je Merkmal; für die Nullprobe Verteilungen nach Helligkeit). Ableitung aus der Simulation:
+- `chi2_per_dof = chi2 / (n_good − 5)` direkt aus der Anpassung; `RUWE_sim` wie oben.
+- `ruwe_expected` und `ruwe_sigma` aus dem DR3-Kalibriergitter (`data/processed/ruwe_grid_dr3.parquet`) mit Helligkeit und Farbe des echten Sterns; `ruwe_excess = RUWE_sim − ruwe_expected`, `ruwe_z = ruwe_excess / ruwe_sigma`.
+- `astrometric_excess_noise_sig` gibt `astromet` nicht aus. Ersatz: monotone (isotone) Abbildung von `AEN_sim / σ_formal(G, Farbe)` auf die echte Signifikanz, angepasst an den echten Sternen des **Kalibrierteils**; bewertet am Testteil.
+- `wobble_ratio = AEN_sim / a1_max` mit `a1_max` wie im Merkmal (Sternmasse `mass_ms`, Parallaxe, Messdauer des Releases). Der echte Wert nutzt den Katalog-`astrometric_excess_noise`, der bei G > 13 oft fälschlich 0 ist (Kiefer et al.); dieser Unterschied wird beim Vergleich genannt.
+Ein Merkmal gilt als „nicht reproduziert“, wenn sein Median-Verhältnis außerhalb von 0,7 bis 1,4 liegt oder seine Rangkorrelation unter 0,6; das wird berichtet und begrenzt die Aussagen, die auf diesem Merkmal beruhen.
+
+**6. Score-Vergleich für Liste 2: keine freie Optimierung.** Getestet werden nur die zwei Änderungen im Abschnitt „Verglichene Scores“: Amplitude geteilt durch 0,58 und `P(m2 < 13)` durch die isotone Kalibrierung ersetzt (angepasst am Kalibrierteil der Simulation, bewertet am Testteil). Keine weiteren Varianten, kein Ausprobieren von Schwellen oder Faktoren. Die Antwort wird immer an echten Daten gegengeprüft, bevor sie berichtet wird:
+- Ränge von Gaia-4 b und Gaia-5 b im Score v1 und v2 (echte DR3-Sterne, Grundgesamtheit wie in den Listen),
+- Ränge der dunklen Backtest-Ziele (`y13_ms`, 4 Sterne mit den DR2-Werten des Backtests) in v1 und v2,
+- Anreicherung mit DR3-Beschleunigungs-Lösungen in den Top 100 und Top 1.000 (Liste-2-Population, ohne bekannte Fälle) in v1 und v2.
+„v2 sortiert Planeten weiter nach oben“ gilt nur, wenn keiner dieser drei realen Tests klar gegen v2 spricht: Gaia-4 b und Gaia-5 b beide mehr als doppelt so weit hinten wie in v1, oder die Anreicherung in den Top 1.000 unter der Hälfte von v1. Sonst wird berichtet: „die Simulation und die echten Daten widersprechen sich“.
+
+**7. Robustheit der Häufigkeitsannahmen.** Hauptlauf mit gleich großen Klassen. Zusätzlich zwei Varianten, in denen die simulierten Planeten gegenüber den Braunen Zwergen mit halbem und mit doppeltem Gewicht in die Auswertung eingehen (Gewichtung der vorhandenen Systeme; die Zahl der Doppelsterne bleibt unverändert). Berichtet wird, ob Vorzeichen und Signifikanz des Unterschieds zwischen v1 und v2 in allen drei Läufen gleich bleiben. Ändert sich die Schlussfolgerung, steht das im Bericht als „nicht stabil“.
+
+**8. Grenzen (stehen im Bericht).**
+- Alle Vergleichssterne (Bahnlösungen, Kontrollplaneten) wackeln deutlich; für **schwache Signale** gibt es keine Prüfung gegen echte Daten.
+- Das Scan-Muster ist das **nominelle** und nicht das tatsächliche Scan-Gesetz. Die Zahl der Übergänge im DR4-Zeitraum ist eine Näherung (Anteil aus DR3), keine Messung.
+- Der Messfehler stammt aus einer digitalisierten Abbildung und ist über G = 16 hinaus extrapoliert; das Rauschen durch Nachbarn und Dichte ist nicht simuliert.
+- Die Häufigkeiten und Verteilungen der Klassen sind Annahmen aus der Literatur (siehe `configs/simulation_priors.yaml`, noch leer).
+- Die Korrelationen der Bahnelemente von Gaia sind nicht gespeichert.
+- Die Simulation zeigt, ob eine bekannte Verzerrung der Amplitude in der Simulation ein Problem ist; sie zeigt nicht, was bei DR4 passiert.
+
+**9. Test gegen den ID-Fehler** ist eingebaut (`tests/test_source_ids.py`, Commit 9c497d5): Jede Datei mit einer Spalte `*source_id` muss `BIGINT` (int64) sein, die Feature-Tabellen müssen dieselben IDs wie die Kataloge haben (kein Verlust, kein Rundungsfehler), und zwei Sterne mit 19-stelliger ID müssen unverändert vorhanden sein. Für die Simulation gilt derselbe Test für alle neuen Dateien (Teilung, Ergebnisse).
+
+**Rahmen (Erinnerung).** Die Simulation ist eine Zusatzauswertung. Liste 1, Liste 2, `MANIFEST.md` und `evaluate_bet.py` aus `v1.0` bleiben unverändert.
