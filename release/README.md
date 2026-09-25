@@ -33,6 +33,6 @@ Jupiter masses is much rarer (17 targets; 4 with the dark-companion condition), 
 
 `sha256sum -c list1_substellar.csv.sha256 list2_planets.csv.sha256` must succeed. The code state is recorded in the header of every list.
 
-## Licence (proposal, to be confirmed before publishing)
+## Licence
 
-Lists and documentation: CC BY 4.0. Code: MIT.
+Lists and documentation: CC BY 4.0. Code: MIT. Copyright (c) 2026 Onuralp Akca.

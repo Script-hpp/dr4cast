@@ -1,8 +1,121 @@
-# Gaia Wobble Bet
+# dr4cast
 
-Pre-registered ML prediction of which Gaia DR3 stars get a planetary/substellar companion orbit solution in Gaia DR4.
+**Predicting, before the release, which stars get a substellar companion in Gaia DR4.**
 
-- Code and bulk data live in this folder; `data/` is git-ignored.
-- Layout: `data/raw` (downloads), `interim`, `processed` (Parquet), `models`, `predictions`.
-- Plan: `docs/plan.md`. Regeln der Wette: `MANIFEST.md` (maßgebliche Version). Log: `docs/experiment_log.md`.
-- Set `GAIA_DATA_DIR` (see `.env.example`) to move the data elsewhere.
+Gaia DR4 is planned for **2 December 2026** (ESA). It rests on 66 months of data instead of the 34 months of DR3, and it will publish
+new astrometric orbit solutions. dr4cast trains a model on older data, publishes a ranked list of DR3 stars with a timestamp
+*before* the release, and then checks it openly against DR4 and against simple baselines and published methods.
+
+![status](https://img.shields.io/badge/status-release%20candidate%20v1-orange)
+![code](https://img.shields.io/badge/code-MIT-blue)
+![lists](https://img.shields.io/badge/lists-CC%20BY%204.0-lightgrey)
+
+> **Status:** release candidate v1. The lists in [`release/v1/`](release/v1) are built but **not yet frozen**. They are frozen when
+> the Zenodo record is published; its DOI will be added here. After that, nothing about the lists, the manifest or the evaluation
+> script changes until DR4 (except the schema adaptations that the manifest allows).
+
+## The idea in one minute
+
+A planet or brown dwarf makes its star wobble a little. Gaia measures that wobble. Stars that wobble too much for a single star show
+up as high **RUWE** (a Gaia fit-quality number), but RUWE alone points mostly to stellar binaries. dr4cast asks a sharper question:
+
+> Which DR3 stars will have an orbit solution with a companion below 80 Jupiter masses in DR4 (list 1),
+> and, among the dark ones, below 13 Jupiter masses (list 2, the "planet list")?
+
+The link between releases is made **only through the official neighbourhood table**, never through equal `source_id`s.
+
+## What is published
+
+| | |
+|---|---|
+| [`MANIFEST.md`](MANIFEST.md) | The pre-registered rules: targets, metrics, exclusions, comparison methods, evaluation. Versioned, every change is logged with its reason. |
+| [`release/v1/`](release/v1) | The two lists (1,000 stars each; the bet is the first 100), SHA-256 checksums, and the inputs' checksums. |
+| [`src/gaia_wobble/evaluate_bet.py`](src/gaia_wobble/evaluate_bet.py) | The evaluation script that will be applied to DR4. It is frozen together with the lists. |
+| [`docs/experiment_log.md`](docs/experiment_log.md) | Everything learned before freezing, including the negative results. |
+
+Verify the lists: `cd release/v1 && sha256sum -c list1_substellar.csv.sha256 list2_planets.csv.sha256`
+
+## How it works
+
+```
+Gaia DR2 + DR3 (nearby stars, ~200 pc)        NSS orbit solutions, binary masses
+        |                                               |
+   RUWE calibration per release                 companion mass from the orbit
+   (expected RUWE for brightness and colour)    (dark-companion assumption)
+        |                                               |
+   physical features:  ruwe_z, wobble amplitude vs. the largest substellar wobble,
+                       offset above the main sequence, ...
+        |
+   LightGBM trained on DR2 features -> target: DR3 orbit with mass < 80 M_Jup      (backtest DR2 -> DR3)
+        |
+   the same model applied to DR3 features -> ranked list for DR4                  (the bet DR3 -> DR4)
+```
+
+- **Model A** (the model of the bet) uses nine physical features and is trained on DR2 with a target from DR3. It uses no feature that
+  changes with the observing time of a release (observation counts, parallax errors), so it can be moved from one release to the next.
+- **List 2** additionally requires the star to sit near the main sequence (`ms_offset < 0.2` mag: a dark companion adds no light) and
+  weights the score by an estimate of the share of possible companion masses below 13 Jupiter masses.
+- Stars with a known DR3 orbit below 80 Jupiter masses, known planet hosts, and stars with a Gaia neighbour within 2 arcsec are
+  marked and skipped in `rank_new`, so a "hit" is a prediction, not a repeat.
+
+## The backtest (DR2 → DR3), honestly
+
+The same recipe was run one release earlier: predict from DR2 alone which stars get a substellar orbit in DR3.
+2.30 million stars, 1,304 targets (base rate 0.057 %). The full numbers and 95 % intervals (bootstrap over 192 sky cells) are in the log.
+
+| Method | P@100 | P@1000 | ROC-AUC |
+|---|---|---|---|
+| **Model A** | **0.15** (0.09–0.23) | **0.093** (0.077–0.115) | 0.966 |
+| RUWE ordering | 0 | 0 | 0.783 |
+| RUWE calibrated for brightness and colour | 0 | 0 | 0.830 |
+| Hand-built rule, no ML | 0 | 0 | – |
+| Logistic regression, same features | 0 | 0 | 0.862 |
+
+Please read the caveats before quoting these numbers:
+
+- **The target is what Gaia's pipeline published**, not what is physically there. Many DR3 "substellar" solutions sit about
+  0.4–0.5 mag above the main sequence, like unresolved binaries with an underestimated companion mass. Confirmed dark companions sit
+  on the main sequence. The bet is about Gaia's release, and the same contamination will be in DR4.
+- Part of the skill is Gaia's own selection (which stars get an orbit at all). Removing parallax- and brightness-based features costs
+  almost nothing, because the selection lives in the noise statistics themselves; the model does not transfer to DR4 if Gaia's
+  thresholds change.
+- **List 2 has almost no backtest.** Only 17 DR3 targets are below 13 Jupiter masses, and only 4 of them are dark. It is a bet into
+  the unknown, and it is labelled as such.
+- DR3's own mass table (`binary_masses`) contains no companion below 32 Jupiter masses, so companion masses are estimated from the orbit
+  (the estimate reproduces Gaia's own values where they exist, but that only shows we repeat Gaia's formula, not that the masses are exact).
+
+## Reproduce
+
+```bash
+uv sync                                   # Python 3.11+, see pyproject.toml
+python -m gaia_wobble.download            # DR3 nearby stars (Heidelberg TAP mirror)
+python -m gaia_wobble.download_aux        # labels, NSS tables, DR2 sample, HGCA, DR2-DR3 links
+python -m gaia_wobble.download_competitors
+python -m gaia_wobble.targets             # DR3 orbit targets with estimated companion masses
+python -m gaia_wobble.labels              # NASA Exoplanet Archive labels, cut by release date
+python -m gaia_wobble.calibration         # expected RUWE per release
+python -m gaia_wobble.features
+python -m gaia_wobble.physics_features
+python -m gaia_wobble.amplitude
+python -m gaia_wobble.ablation physics    # trains the five region models of Model A
+python -m gaia_wobble.make_lists my_lists # both lists in one run
+python -m gaia_wobble.evaluate_bet        # backtest dry run of the evaluation script
+uv run pytest
+```
+
+Data (about 4 GB) goes to `data/` (git-ignored); set `GAIA_DATA_DIR` to change that. The steps were run one by one during development;
+a clean-room re-run of the whole chain in one go has not been done. Downloads take a few hours.
+
+## Data and credits
+
+This work has made use of data from the European Space Agency (ESA) mission Gaia, processed by the Gaia Data Processing and Analysis
+Consortium (DPAC). Data and methods from: the Heidelberg ARI Gaia archive mirror, the NASA Exoplanet Archive, the Hipparcos-Gaia Catalog of
+Accelerations (Brandt 2018, 2021), the main-sequence table of E. Mamajek (Pecaut & Mamajek 2013), Kiefer et al. (2025, A&A 702, A77),
+Abreu et al. (2025, ExoDNN, A&A 704, A150) and Sahlmann & Gómez (2025, MNRAS 537, 1130). The wobble-amplitude estimate follows
+Kiefer et al. (2025, arXiv 2409.16992).
+
+## Licence and citation
+
+Code: MIT, lists and documentation: CC BY 4.0. Copyright (c) 2026 Onuralp Akca. See [`LICENSE`](LICENSE) and [`LICENSE-DATA.md`](LICENSE-DATA.md).
+
+Citation: Onuralp Akca, *dr4cast: a pre-registered forecast of Gaia DR4 substellar companions*, 2026, Zenodo DOI to follow.

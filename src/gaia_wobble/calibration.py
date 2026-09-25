@@ -66,3 +66,14 @@ def apply_ruwe_grid(parquet_glob: str, release: str) -> "duckdb.DuckDBPyRelation
     LEFT JOIN gonly ON t.g_bin = gonly.g_bin
     CROSS JOIN gl
     """)
+
+
+if __name__ == "__main__":
+    from .paths import RAW
+
+    for release in ("dr2", "dr3"):
+        glob = str(RAW / f"{release}_nearby" / "*.parquet")
+        fit_ruwe_grid(glob, release)
+        r = apply_ruwe_grid(glob, release)
+        duckdb.sql(f"COPY (SELECT * FROM r) TO '{PROCESSED}/ruwe_features_{release}.parquet' (FORMAT parquet)")
+        print(release, "calibration written")
