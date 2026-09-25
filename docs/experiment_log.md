@@ -241,3 +241,26 @@ Festlegung vor der Anwendung (Manifest 0.13): Modell A = Physik-Variante, Mittel
 - Die Top 100 haben keinen bekannten Planetenstern. Das ist zu erwarten (bekannte Planetensterne wackeln nicht: Median `ruwe_z` −0,03) und kein Zeichen für ein Problem.
 
 Nicht geprüft: die Top-Sterne selbst (Namen, bekannte Doppelstern-Einträge in SIMBAD), der Anteil bekannter Doppelsterne in den Top 100 (Manifest, Validierung Punkt 4) und SHAP für B/B'.
+
+## 2026-09-25 – Diagnose der Top 100 in DR3 (SIMBAD, nahe Nachbarn; `diagnose_top.py`)
+
+Population: Top 100 von Modell A (Physik-Variante) auf DR3 nach Ausschluss der bekannten Fälle (DR3-Bahn unter 80 M_Jup, bekannte Planetensterne). Kontrollgruppe: 1.000 Sterne aus der Population mit gleicher Parallaxen-Genauigkeit, Helligkeit und `ruwe_z`-Spanne (5.–95. Perzentil der Top 100). Reine Auswertung, nichts davon geht ins Modell.
+
+| Anteil | Top 100 | Kontrolle |
+|---|---|---|
+| in SIMBAD verzeichnet | 100 % | 22,4 % |
+| Doppelstern-Typen (SB*, EB*, **, El*) | 1 % | 0,2 % |
+| junge Sterne (Y*O, TT*, Or*) | 0 % | 0 % |
+| Weiße Zwerge | 0 % | 0,3 % |
+| Veränderliche (V*, Fl*, BY*, RS*) | 0 % | 0,2 % |
+| Nachbar in Gaia DR3 innerhalb von 2" | 31 % | 15,4 % |
+
+SIMBAD-Typen der Top 100: 92 Sterne mit hoher Eigenbewegung (PM*), 4 M-Zwerge (LM*), 3 Emissionslinien-Sterne (Em*), 1 Doppelstern (**).
+
+Befunde:
+1. Die Top 100 sind fast ausschließlich nahe Sterne mit hoher Eigenbewegung (Typ PM*). Sie sind alle in SIMBAD verzeichnet, die Kontrollgruppe nur zu 22 %. Das passt zu nahen M-Zwergen und zum Merkmal `pm_total` (ein Entfernungs-Indikator) im Modell. Es sagt nichts über Planeten, eher etwas über die Auswahl: nahe, gut katalogisierte Sterne.
+2. Bekannte Doppelstern-Typen sind in den Top 100 kaum vertreten (1 %). Das ist keine Entwarnung: SIMBAD kennt nur die bekannten Doppelsterne, und Sterne, die nicht in SIMBAD stehen, fehlen in dieser Statistik (in der Kontrollgruppe 78 %).
+3. **Nahe Nachbarn:** 31 % der Top 100 haben einen Gaia-Nachbarn innerhalb von 2 Bogensekunden, in der Kontrollgruppe 15 %, also das Doppelte. Enge Paare überlagern sich in den Bildern und erhöhen RUWE und Rauschen künstlich. Ein Teil des Wackel-Signals in der Liste ist damit vermutlich Bildüberlagerung und nicht Bewegung. Als Feature ist das nicht im Modell (Manifest 0.13), gehört aber als Grenze in den Bericht.
+4. Keine jungen Sterne. Weiße Zwerge und Veränderliche sind nicht überrepräsentiert.
+
+Noch nicht gemacht: Abgleich mit ExoDNN, Sahlmann & Gómez und dem Kiefer-Katalog (Listen nicht beschafft; ein Abgleich ist keine Validierung, weil die Methoden ähnliche Daten nutzen). Liste 2 besteht bisher nur aus Liste 1 mit dem Filter `ms_offset < 0,2`; die im Manifest vorgesehene Massen-Wahrscheinlichkeit aus der Wackel-Amplitude ist noch nicht gebaut.

@@ -47,9 +47,9 @@ def _raise_timeout(signum, frame):
     raise TimeoutError("Gaia TAP job exceeded wall-clock limit")
 
 
-def run_async(query: str, tries: int = 5, wall_clock: int = 900, uploads: dict | None = None) -> Table:
+def run_async(query: str, tries: int = 5, wall_clock: int = 900, uploads: dict | None = None, url: str | None = None) -> Table:
     """Run a TAP job; a hung connection is aborted after `wall_clock` seconds and retried."""
-    service = pyvo.dal.TAPService(TAP_URL)
+    service = pyvo.dal.TAPService(url or TAP_URL)
     signal.signal(signal.SIGALRM, _raise_timeout)
     for i in range(tries):
         signal.alarm(wall_clock)
