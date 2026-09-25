@@ -427,3 +427,22 @@ Die Listen wurden aus dem Code-Stand 3e128b1 gebaut. Spätere Commits ändern nu
 Ausgelassen: eine Neuberechnung der ganzen Kette mit Downloads (Stunden). Die Zwischendaten (Features, Modelle) werden nur über ihre Prüfsummen in `lists_manifest.json` geprüft.
 
 Weitere Vorbereitungen für Zenodo: `CITATION.cff` und `.zenodo.json` (Titel, Autor, Schlagworte, Lizenz CC BY 4.0 für die Daten; der Code bleibt über `LICENSE` MIT). Ohne ORCID; falls vorhanden, eintragen. Die Konkurrenz-Listen liegen nicht im Repo (nur `download_competitors.py` und `docs/competitors.json` mit den Prüfsummen).
+
+## 2026-09-25 – Backtest von Modell A gegen das Ziel mit `m1` aus `mass_ms` (ohne Neutraining; `m1_backtest.py`)
+
+Frage: Senkt oder hebt das um etwa ein Viertel größere Ziel (`mass_ms`, Klarstellung Abschnitt d) die Leistung des unveränderten Modells A? Dieselben Out-of-Fold-Scores der Physik-Variante, dieselbe Auswertung; nur `m1` der DR3-Bahnlösungen kommt aus der anderen Quelle. Population: DR2-Sterne mit `parallax_over_error >= 10` und Score (2.304.869 Sterne); Modell und Baseline auf denselben Sternen; nur Lösungen, deren Stern im DR3-Nahsternkatalog liegt (dort gibt es `abs_g`).
+
+| `m1` aus | Ziel | Ziele | Treffer Top 100 | Treffer Top 1.000 | AUC | AP |
+|---|---|---|---|---|---|---|
+| `binary_masses` | `y80` | 1.303 | 15 | 93 | 0,9658 | 0,0395 |
+| `mass_ms` | `y80` | 1.583 | 19 | 116 | 0,9669 | 0,0519 |
+| `binary_masses` | `y13` | 17 | 0 | 2 | 0,974 | 0,0013 |
+| `mass_ms` | `y13` | 24 | 0 | 2 | 0,960 | 0,0012 |
+| `binary_masses` | `y13_ms` | 4 | 0 | 0 | 0,964 | 0,0001 |
+| `mass_ms` | `y13_ms` | 6 | 0 | 0 | 0,898 | 0,0001 |
+
+Baseline `ruwe_z`: AUC 0,830 (`binary_masses`, `y80`) und 0,841 (`mass_ms`), 0 Treffer in den Top 100 und Top 1.000 in beiden Fassungen.
+
+- Das größere Ziel **hebt** die Leistung für `y80`: 19 statt 15 Treffer in den Top 100, 116 statt 93 in den Top 1.000, Average Precision 0,052 statt 0,040. Die zusätzlichen Ziele (Median `ms_offset` 0,46, wie die übrigen) sehen für das Modell aus wie die bisherigen. Das Modell wurde nicht neu trainiert.
+- Bei `y13` und `y13_ms` ist die Aussage schwach: 24 bzw. 6 Ziele, in den Top 100 kein Treffer, in den Top 1.000 je 0 bis 2. Die AUC für `y13_ms` fällt von 0,96 auf 0,90; bei 4 bzw. 6 Zielen ist das kein belastbarer Unterschied.
+- Erste Auswertung hatte Modell A und Baseline auf verschiedenen Mengen verglichen (1.583 und 1.629 Ziele, weil Sterne mit jetzt bekanntem Label keinen Score haben); korrigiert auf dieselbe Menge.

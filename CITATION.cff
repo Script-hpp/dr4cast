@@ -6,7 +6,8 @@ authors:
   - family-names: "Akca"
     given-names: "Onuralp"
     alias: "Script-hpp"
-version: "v1.0"
+version: "v1.0.1"
+date-released: 2026-09-25
 license: CC-BY-4.0
 repository-code: "https://github.com/Script-hpp/dr4cast"
 abstract: >-
