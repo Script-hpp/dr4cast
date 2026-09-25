@@ -219,3 +219,25 @@ Die Top 1000 enthalten 15-mal mehr Beschleunigungs-Lösungen als die Population 
 | A (full) | – | – | 0,969 | 0,0434 | 0,08 | 0,097 | 54,5 % |
 
 B und B' lernen ihr eigenes Label gut (AUC 0,94/0,99, vor allem über Helligkeit und Entfernung der beobachteten Planetensterne), finden das Backtest-Ziel aber praktisch nicht. Die Negativ-Kontrolle bestätigt, dass Planetenlabels ohne Wackel-Bezug für dieses Ziel nichts beitragen. SHAP für B/B' und die AP-Streuung je Region fehlen noch.
+
+## 2026-09-25 – Manifest 0.13 und erste Anwendung von Modell A (Physik-Variante) auf DR3
+
+Festlegung vor der Anwendung (Manifest 0.13): Modell A = Physik-Variante, Mittel der fünf Regions-Modelle; Liste 2 nur mit `ms_offset < 0,2`. Die Wahl fiel nach Blick auf die Ablationen (Leistung im Streuungsbereich der Regionen); Hauptargument: Beobachtungszahlen, Sichtbarkeitsperioden und Parallaxen-Fehler verändern sich mit der Messdauer der Releases. Die Ablationen senken das Übertragungsrisiko nicht: Die Auswahlschwelle von Gaia (erhöhtes Astrometrie-Rauschen) steckt in den Wackel-Statistiken selbst und lässt sich nicht herausnehmen, ohne das Signal zu entfernen. Das Modell überträgt sich auf DR4 nur, wenn Gaia dort ähnliche Schwellen benutzt.
+
+**Anwendung auf DR3** (`apply_dr3.py`, Entwicklungslauf, nicht die eingefrorene Liste; 2.234.316 Sterne mit `parallax_over_error >= 10`):
+
+| Gruppe | DR3-Bahn unter 80 M_Jup | irgendeine DR3-Bahn | Beschleunigungs-Lösung | bekannter Planet | Median `ms_offset` | Median G |
+|---|---|---|---|---|---|---|
+| Top 100 | 11 % | 13 % | 11 % | 0 % | 0,26 | 15,0 |
+| Top 100 ohne bekannte Fälle | 0 % | 2 % | 11 % | 0 % | 0,24 | 15,0 |
+| Top 1000 | 7,4 % | 11,8 % | 12,7 % | 0,1 % | 0,34 | 14,5 |
+| Top 1000 ohne bekannte Fälle | 0 % | 4,7 % | 13,4 % | 0 % | 0,34 | 14,5 |
+| Population | 0,1 % | 0,5 % | 1,2 % | 0,1 % | −0,03 | 16,5 |
+
+- Nur 11 % der Top 100 (74 von 1000) haben schon eine DR3-Bahn unter 80 M_Jup. Das Modell füllt die Liste nicht mit Sternen, deren Ergebnis feststeht; die Regel „neue Treffer“ (Manifest 0.8) verändert die Top 100 wenig.
+- Nach dem Ausschluss der bekannten Fälle haben 11 % der Top 100 und 13 % der Top 1000 eine Beschleunigungs-Lösung (Population 1,2 %), also ein Faktor 10 über der Population. Diese Sterne sind Kandidaten für eine DR4-Bahn.
+- Der Median von `ms_offset` in den Top 100 liegt bei 0,26 (Population −0,03): Auch auf DR3 bevorzugt das Modell Sterne über der Hauptreihe. Nur 37,7 % der Top 1000 erfüllen `ms_offset < 0,2`; Liste 2 würde also aus einem deutlich kleineren Kreis wählen.
+- Verteilung der Scores: Median 0,0017 (DR2 Out-of-Fold 0,0019), 90. Perzentil 0,024 (0,016), 99. Perzentil 0,41 (0,31), 99,9. Perzentil 0,67 (0,67). Die DR3-Scores liegen im mittleren Bereich etwas höher, ohne große Verschiebung. Das Modell sieht in DR3 also keinen Bereich, der im Training völlig fehlte.
+- Die Top 100 haben keinen bekannten Planetenstern. Das ist zu erwarten (bekannte Planetensterne wackeln nicht: Median `ruwe_z` −0,03) und kein Zeichen für ein Problem.
+
+Nicht geprüft: die Top-Sterne selbst (Namen, bekannte Doppelstern-Einträge in SIMBAD), der Anteil bekannter Doppelsterne in den Top 100 (Manifest, Validierung Punkt 4) und SHAP für B/B'.
