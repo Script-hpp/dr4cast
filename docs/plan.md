@@ -22,11 +22,13 @@ Stand: 2026-09-25. Erledigt: DR3-Hauptkatalog (Download läuft), NSS-Tabellen, N
 - Backtest-Ziel bauen: DR3-Lösungen `Orbital` mit `m2` (`binary_masses`) unter 13 bzw. 80 M_Jup; getrennt `OrbitalTargetedSearch`.
 - Tests: keine doppelten `source_id`, Verknüpfung nur über die Nachbarschaftstabelle, Dtypes.
 
-## 4. Baseline und Modell v1
-- Baseline: RUWE-Sortierung, Metriken P@10, P@30, P@100, Recall@100, absolute Treffer, nach Helligkeitsklassen. Jede Metrik zweifach: alle Treffer und nur neue Treffer (Hauptmetrik).
-- LightGBM v1 mit Klassengewichten und starker Regularisierung.
-- Aufteilung gruppiert nach Planetensystem (nie gemischt in Training und Test).
-- Prüfen: Gaia-4 b und Gaia-5 b (nicht im Training) weit oben, erst bei der DR4-Vorhersage; Anteil bekannter Doppelsterne in den Top 100.
+## 4. Baseline und Modelle (Manifest 0.7)
+- Baseline: RUWE-Sortierung und `ruwe_z`-Sortierung; Metriken P@10, P@30, P@100, Recall@100, absolute Treffer, nach Helligkeitsklassen. Jede Metrik zweifach: alle Treffer und nur neue Treffer (Hauptmetrik).
+- Recall-Basis in DR2-Begriffen: Ziel-Treffer, deren DR2-Gegenstück in der DR2-Stichprobe liegt und den DR2-Filter besteht (Verluststufen im Log).
+- Modell A (Hauptmodell): DR2-Features → DR3-Ziel unter 80 M_Jup, gruppierte Aufteilung, dann Anwendung auf DR3-Features.
+- Modelle B und B' (NASA-Labels) als Vergleich und Negativ-Kontrolle.
+- Die 461 Sterne ohne `m1` weder positiv noch negativ.
+- Prüfen: Anteil bekannter Doppelsterne in den Top 100; Gaia-4 b und Gaia-5 b erst bei der DR4-Vorhersage.
 
 ## 5. Erklärbarkeit und Bias
 - SHAP: Dominieren Helligkeit und Entfernung statt der Wackel-Features?

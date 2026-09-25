@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.6
+**Version:** 0.7
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -53,10 +53,25 @@ Rohdaten bleiben vollständig erhalten; gefiltert wird erst beim Aufbereiten. Gr
 
 ## Modell
 
-- **Version 1:** LightGBM, bekannte Planetensterne = 1, Rest = 0, Klassengewichte, starke Regularisierung.
-- **Version 2:** PU-Learning (Bagging), Umgewichtung nach Entfernung und Helligkeit, kein „ist in RV-Survey“-Feature.
-- **Features:** RUWE, `astrometric_excess_noise`, `ipd_*`, RUWE-Abweichung vom Erwartungswert, NSS-Lösungstyp (Kategorie, kein Filter), HGCA-Beschleunigung (fehlend bleibt leer), Helligkeit, Farbe, Entfernung, Anzahl Beobachtungen.
-- **Erklärbarkeit:** SHAP; dominieren Helligkeit/Entfernung, lernt das Modell den Bias.
+Die Modelle werden mit LightGBM trainiert. Die Reihenfolge ihrer Rollen steht vor dem ersten Training fest und hängt nicht vom Backtest-Ergebnis ab (Begründung im Änderungsprotokoll 0.7).
+
+| Modell | Rolle | Training | Anwendung |
+|---|---|---|---|
+| **A – Transfer** | **Hauptmodell, offizielle Wette** | DR2-Features → Ziel „DR3-`Orbital`-Lösung mit geschätzter Masse unter 80 M_Jup“ | dasselbe Modell auf DR3-Features → DR4-Ziel |
+| B – NASA-Labels | Vergleich | DR2-Features (Backtest) bzw. DR3-Features (Wette), bekannte Planetensterne = 1, Rest = 0, Klassengewichte, starke Regularisierung | wie A |
+| B' – NASA-Labels, gefiltert | Vergleich | wie B, nur Planeten mit erwarteter messbarer Wackel-Amplitude | wie A |
+| A2 – PU-Learning | nachrangig, nur bei stabilem A | wie A mit PU-Bagging und Umgewichtung nach Entfernung und Helligkeit | wie A |
+
+Regeln:
+- **Richtung des Transfers:** Modell A sieht im Training nur DR2-Features. Mit DR3-Features wäre das Ziel trivial (die Zielsterne haben dort schon die Bahnlösung, Median `ruwe_z` = 5,7).
+- **Der NSS-Lösungstyp ist im Modell A kein Feature.** DR2 hat keine Bahnlösungen; ein Feature, das im Training immer fehlt, wäre bei der Anwendung wertlos. Er bleibt ein Feature nur dort, wo er in Training und Anwendung vorhanden ist (nicht in A). Die Doppelstern-Kontrolle in den Top 100 nutzt ihn nachträglich.
+- **Verschiebung zwischen den Releases** (Messdauer DR2 22, DR3 34, DR4 66 Monate): RUWE wird je Release kalibriert (`ruwe_z`), das Modell benutzt die kalibrierten Größen; die Verschiebung bleibt als Grenze im Log dokumentiert.
+- **Berichtet werden immer alle Modelle**, unabhängig davon, welches im Backtest am besten ist. Die Wahl des Hauptmodells wird nicht nachträglich geändert.
+- Kontrollsterne Gaia-4 b und Gaia-5 b sind nie im Training.
+
+**Features** (für DR2 und DR3 gleich berechnet): RUWE und seine Abweichung vom Erwartungswert je Helligkeit und Farbe (`ruwe_excess`, `ruwe_z`, siehe `calibration.py`), `astrometric_excess_noise`, Bildqualitätswerte (`ipd_*`, nur DR3), Helligkeit, Farbe, Entfernung, Anzahl Beobachtungen, HGCA-Beschleunigung (fehlend bleibt leer; DR2-Edition im Backtest, EDR3-Edition in der Wette). Merkmale, die es nur in einem der beiden Releases gibt, gehen nicht in Modell A ein.
+
+**Erklärbarkeit:** SHAP; dominieren Helligkeit und Entfernung statt der Wackel-Features, lernt das Modell den Bias. Erwartung für Modell B: Wegen `ruwe_z` der Planetensterne von −0,03 lernt es vor allem den Survey-Bias; das ist als Beleg vorgesehen.
 
 ## Validierung
 
@@ -110,3 +125,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.4 | 2026-09-25 | Regel „kein Leakage“ für die DR2-Stichprobe; Filter-Prüfung an Labels und `Orbital`-Lösungen vorgeschrieben | Filter kann gerade die wackelnden Sterne entfernen |
 | 0.5 | 2026-09-25 | Hauptmetrik „nur neue Treffer“; Leakage-Regeln (Stand DR2, `disc_year <= 2017`, Kontrollsterne) | Bekannte Planetensterne und Zukunftsdaten machen Backtest und Metrik zu leicht |
 | 0.6 | 2026-09-25 | Massenschätzung aus Bahnparametern statt `binary_masses`; Backtest-Hauptziel unter 80 M_Jup, Nebenziel unter 13 M_Jup; DR4-Hauptziel auf dieselbe Schätzung umgestellt; zurückgezogene DR3-Lösungen ausgeschlossen | `binary_masses` hat keinen Begleiter unter 32 M_Jup, Backtest-Ziel hätte 0 Treffer; Vergleichbarkeit zwischen Backtest und Wette |
+| 0.7 | 2026-09-25 | Hauptmodell A = Transfer (DR2-Features → DR3-Ziel, angewendet auf DR3-Features → DR4); NASA-Label-Modelle als Vergleich (B, B'); NSS-Lösungstyp in A kein Feature | Bekannte Planetensterne haben `ruwe_z` −0,03 (nicht von der Population unterscheidbar), das Label enthält kein Wackel-Signal; Entscheidung vor dem ersten Training und unabhängig vom Backtest-Ergebnis |
