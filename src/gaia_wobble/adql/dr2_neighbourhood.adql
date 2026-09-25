@@ -1,0 +1,8 @@
+-- DR2->DR3 links (1:n possible) for the DR2 nearby sample. The only allowed DR2->DR3 link.
+-- {lo}/{hi} = DR2 source_id range of one level-2 HEALPix pixel.
+SELECT n.dr2_source_id, n.dr3_source_id, n.angular_distance, n.magnitude_difference,
+       n.proper_motion_propagation
+FROM gaiadr3.dr2_neighbourhood AS n
+JOIN gaiadr2.gaia_source AS g ON g.source_id = n.dr2_source_id
+WHERE g.parallax >= 5
+  AND g.source_id >= {lo} AND g.source_id < {hi}

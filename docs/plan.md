@@ -12,7 +12,7 @@ Stand: 2026-09-25. Erledigt: DR3-Hauptkatalog (Download läuft), NSS-Tabellen, N
 2. `gaiadr2.ruwe` (Baseline im Backtest).
 3. `gaiadr3.dr2_neighbourhood` (Verknüpfung DR2→DR3, nur über diese Tabelle).
 4. `gaiadr2.gaia_source`, nahe Sterne. Auswahl **nur mit DR2-Parallaxe** (kein Leakage), gleiche Chunk-Technik.
-5. HGCA (Beschleunigung, ca. 100k helle Sterne): zwei Versionen, Brandt 2018 (DR2) für den Backtest, Brandt 2021 (EDR3) für die Wette. Quelle noch zu klären (Vizier oder direkt bei Brandt).
+5. HGCA (Beschleunigung, ca. 100k helle Sterne): zwei Versionen, Brandt 2018 (DR2) für den Backtest, Brandt 2021 (EDR3) für die Wette. Erledigt: beide Versionen von Brandts Seite geladen (`data/raw/hgca/`).
 6. Labels für den Backtest: nur `disc_year <= 2017`. Gaia-4 b und Gaia-5 b bleiben immer aus dem Training und dienen als Kontrollstichprobe.
 
 ## 3. Aufbereiten (DuckDB, Parquet nach `data/processed/`)
@@ -43,5 +43,4 @@ Stand: 2026-09-25. Erledigt: DR3-Hauptkatalog (Download läuft), NSS-Tabellen, N
 
 ## Offene Entscheidungen
 - Endgültiger Qualitätsfilter (nach Schritt 5).
-- Wo HGCA liegt (Schritt 2.5).
 - GitHub-Repo: öffentlich oder privat, Name (erst zum Veröffentlichen nötig).

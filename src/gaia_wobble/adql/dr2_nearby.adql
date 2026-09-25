@@ -1,0 +1,13 @@
+-- DR2 nearby stars selected with DR2 quantities only (no DR3 information: no leakage), incl. RUWE from gaiadr2.ruwe.
+-- {lo}/{hi} = source_id range of one level-2 HEALPix pixel.
+SELECT
+  g.source_id, g.ra, g.dec, g.b, g.parallax, g.parallax_error, g.pmra, g.pmdec,
+  g.phot_g_mean_mag, g.phot_bp_mean_mag, g.phot_rp_mean_mag, g.bp_rp, g.phot_g_n_obs,
+  r.ruwe, g.astrometric_excess_noise, g.astrometric_excess_noise_sig, g.astrometric_chi2_al,
+  g.astrometric_n_obs_al, g.astrometric_n_good_obs_al, g.astrometric_gof_al,
+  g.astrometric_params_solved, g.visibility_periods_used, g.duplicated_source,
+  g.phot_bp_rp_excess_factor
+FROM gaiadr2.gaia_source AS g
+LEFT JOIN gaiadr2.ruwe AS r ON r.source_id = g.source_id
+WHERE g.parallax >= 5
+  AND g.source_id >= {lo} AND g.source_id < {hi}

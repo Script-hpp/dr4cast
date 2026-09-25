@@ -18,7 +18,8 @@ from .paths import RAW
 
 # source_id encodes HEALPix level 12 in its upper bits: id // 2**35 = level-12 index
 PIX_SPAN = 2**35 * 4**10  # source_id span of one level-2 pixel
-TEMPLATE = (Path(__file__).parent / "adql" / "dr3_nearby.adql").read_text()
+ADQL_DIR = Path(__file__).parent / "adql"
+TEMPLATE = (ADQL_DIR / "dr3_nearby.adql").read_text()
 
 
 def to_arrow(t: Table) -> pa.Table:
@@ -63,19 +64,24 @@ def run_async(query: str, tries: int = 5, wall_clock: int = 900) -> Table:
     raise RuntimeError("TAP async job failed repeatedly")
 
 
-def download_dr3_nearby(out_dir: Path = RAW / "dr3_nearby") -> None:
+def download_chunked(template: str, out_dir: Path) -> None:
+    """Run `template` for each of the 192 level-2 HEALPix source_id ranges -> one Parquet per chunk."""
     out_dir.mkdir(parents=True, exist_ok=True)
     for hp in range(192):
         out = out_dir / f"hp2_{hp:03d}.parquet"
         if out.exists():
             continue
-        t = run_async(TEMPLATE.format(lo=hp * PIX_SPAN, hi=(hp + 1) * PIX_SPAN), wall_clock=CHUNK_TIMEOUT)
+        t = run_async(template.format(lo=hp * PIX_SPAN, hi=(hp + 1) * PIX_SPAN), wall_clock=CHUNK_TIMEOUT)
         tab = to_arrow(t)
-        ids = tab["source_id"].to_numpy()
+        ids = tab["source_id"].to_numpy() if "source_id" in tab.column_names else tab["dr2_source_id"].to_numpy()
         assert ((ids >= hp * PIX_SPAN) & (ids < (hp + 1) * PIX_SPAN)).all(), "id outside chunk"
         pq.write_table(tab, out.with_suffix(".tmp"))
         out.with_suffix(".tmp").rename(out)
         print(f"hp {hp:3d}: {tab.num_rows} rows")
+
+
+def download_dr3_nearby(out_dir: Path = RAW / "dr3_nearby") -> None:
+    download_chunked(TEMPLATE, out_dir)
 
 
 if __name__ == "__main__":

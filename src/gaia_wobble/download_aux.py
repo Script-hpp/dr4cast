@@ -3,10 +3,13 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pyvo
 
-from .download import TAP_URL, run_async, to_arrow
+from pathlib import Path
+
+from .download import ADQL_DIR, TAP_URL, download_chunked, run_async, to_arrow
 from .paths import RAW
 
 NSS_TABLES = ["nss_two_body_orbit", "nss_acceleration_astro", "nss_non_linear_spectro", "nss_vim_fl"]
+DR3_TABLES_FULL = ["binary_masses"]
 SKIP = {"corr_vec", "bit_index"}  # array columns
 NASA_TAP = "https://exoplanetarchive.ipac.caltech.edu/TAP"
 
@@ -23,6 +26,49 @@ def download_nss(out_dir=RAW / "nss") -> None:
         pq.write_table(tab, out.with_suffix(".tmp"))
         out.with_suffix(".tmp").rename(out)
         print(f"{name}: {tab.num_rows} rows")
+
+
+def download_full_tables(out_dir=RAW / "dr3_tables") -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for name in DR3_TABLES_FULL:
+        out = out_dir / f"{name}.parquet"
+        if not out.exists():
+            tab = to_arrow(run_async(f"SELECT * FROM gaiadr3.{name}"))
+            pq.write_table(tab, out)
+            print(f"{name}: {tab.num_rows} rows")
+
+
+def download_dr2() -> None:
+    download_chunked((ADQL_DIR / "dr2_nearby.adql").read_text(), RAW / "dr2_nearby")
+    download_chunked((ADQL_DIR / "dr2_neighbourhood.adql").read_text(), RAW / "dr2_neighbourhood")
+
+
+HGCA_URL = "http://physics.ucsb.edu/~tbrandt/{}.fits"  # Brandt; DR2 edition (2018) and EDR3 edition (2021)
+
+
+def download_hgca(out_dir=RAW / "hgca") -> None:
+    """HGCA FITS -> Parquet. `source_id` is a DR2 id in the DR2 edition (backtest), a DR3 id in the EDR3 edition."""
+    import urllib.request
+
+    import numpy as np
+    from astropy.io import fits
+    from astropy.table import Table
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for name, out_name in [("HGCA_vDR2", "hgca_dr2"), ("HGCA_vEDR3", "hgca_edr3")]:
+        out = out_dir / f"{out_name}.parquet"
+        if out.exists():
+            continue
+        raw = out_dir / f"{name}.fits"
+        if not raw.exists():
+            urllib.request.urlretrieve(HGCA_URL.format(name), raw)  # follows the http->https redirect
+        d = fits.open(raw)[1].data
+        cols = {c: np.ascontiguousarray(d[c]).astype(d[c].dtype.newbyteorder("=")) for c in d.columns.names}
+        cols["source_id"] = cols.pop("gaia_source_id").astype("int64")
+        tab = to_arrow(Table(cols))
+        assert tab["source_id"].null_count == 0
+        pq.write_table(tab, out)
+        print(f"{out_name}: {tab.num_rows} rows")
 
 
 def download_labels(out=RAW / "labels" / "nasa_pscomppars.parquet") -> None:
@@ -56,3 +102,6 @@ def download_labels(out=RAW / "labels" / "nasa_pscomppars.parquet") -> None:
 if __name__ == "__main__":
     download_labels()
     download_nss()
+    download_full_tables()
+    download_hgca()
+    download_dr2()
