@@ -330,3 +330,17 @@ Beide liegen im Score von Liste 2 im obersten Promille bis Prozent, besser als i
 **Einordnung:** Gaia-4 b (Rang 6.244) und Gaia-5 b (Rang 532) liegen deutlich besser als der Durchschnitt, kämen aber in keine Top-100-Liste. Die Richtung stimmt, das Netz aus 100 Sternen ist eng. Der Bericht sagt das so.
 
 **Ziel von Liste 2 (Manifest 0.15).** Von den 17 Zielen unter 13 M_Jup haben 4 ein `ms_offset < 0,2` (−0,31, −0,20, 0,01, 0,07); die übrigen 13 liegen bei 0,41 bis 0,91 mag (Werte 0,41 0,45 0,47 0,51 0,52 0,57 0,60 0,60 0,68 0,77 0,85 0,87 0,91), alle mit `parallax_over_error` zwischen 282 und 1.298. Das entspricht der Deutung, dass diese Ziele überwiegend leichte, unaufgelöste Doppelsterne sind (ein gleich heller Doppelstern liegt 0,75 mag über der Hauptreihe). Für das Ziel unter 80 M_Jup erfüllen 430 von 1.306 die Bedingung.
+
+## 2026-09-25 – Entwicklungslauf der Listen (`data/predictions/dev_lists/`, nicht eingefroren)
+
+Beide Listen aus einem Lauf (Manifest-Stand 0.14, Git-Stand 41a4961, Datei-Kopf entsprechend); je 1.000 Zeilen. Nachbartabelle: 5.488 Kandidaten abgefragt, 17,5 % mit Nachbar innerhalb von 2". Prüfsummen (SHA-256): Liste 1 `99a40bb2…7efba`, Liste 2 `cac53dbc…f3d61`.
+
+| | Liste 1 (unter 80 M_Jup) | Liste 2 (Planeten) |
+|---|---|---|
+| Rang in der Rohsortierung beim 100. Platz von `rank_new` | 150 | 123 |
+| Beschleunigungs-Lösung in den Top 100 | 19 % | 12 % |
+| irgendeine DR3-Bahn in den Top 100 | 3 % | 1 % |
+| Median `ms_offset` | 0,33 | 0,05 |
+| Median `P(m2 < 13)` | 0,32 | 1,0 |
+
+Die Ausschlüsse (bekannte Fälle, Planetensterne, Nachbarn) entfernen nur 50 bzw. 23 Sterne aus den ersten 150 bzw. 123 Rohplätzen. Die Top 100 der beiden Listen überschneiden sich in 6 Sternen. Beide Listen haben einen Beschleunigungs-Anteil, der etwa zehnmal bis 16-mal über der Population liegt (1,2 %). Der Lauf ist ein Test des Werkzeugs, keine Einfrierung: Die Modelle, Features und Regeln sind nach 0.15 noch nicht als endgültig erklärt.
