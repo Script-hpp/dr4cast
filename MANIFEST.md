@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.5
+**Version:** 0.6
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -17,8 +17,8 @@ Das Manifest darf jederzeit angepasst werden, solange wir lernen. Die Glaubwürd
 
 | Regel | Festlegung |
 |---|---|
-| Hauptziel | Stern hat in DR4 eine Bahnlösung (`nss_two_body_orbit` oder `nss_multiple_orbits`) mit Begleitermasse unter 13 Jupitermassen laut `nss_masses` |
-| Nebenziel | Begleitermasse unter 80 Jupitermassen (inkl. Brauner Zwerge) |
+| Hauptziel | Stern hat in DR4 eine Bahnlösung (`nss_two_body_orbit` oder `nss_multiple_orbits`) mit Begleitermasse unter 13 Jupitermassen; Masse nach der eigenen Schätzung (siehe „Massenschätzung und Ziele“), `nss_masses` zusätzlich als Vergleich |
+| Nebenziel | Begleitermasse unter 80 Jupitermassen (inkl. Brauner Zwerge), gleiche Schätzung |
 | Offizielle ESA-Liste | Falls veröffentlicht: zusätzliche Auswertung, ersetzt nicht das Hauptziel |
 | Verknüpfung DR3→DR4 | Nur über die Tabelle `dr3_neighbourhood`, nie über gleiche `source_id` |
 | Metriken | P@10, P@30, P@100, Recall@100, absolute Treffer; zusätzlich nach Helligkeitsklassen. Jede Metrik wird zweifach berichtet: *alle Treffer* und *nur neue Treffer* (Sterne, die nicht in den Trainingslabels waren). **Hauptmetrik ist „nur neue Treffer“**, weil bekannte Planetensterne leicht wiederzufinden sind |
@@ -66,17 +66,27 @@ Rohdaten bleiben vollständig erhalten; gefiltert wird erst beim Aufbereiten. Gr
 4. Anteil bekannter Doppelsterne in den Top 100; das Modell muss die RUWE-Sortierung schlagen.
 5. Optional: künstliche Signale mit den DR4-Vorabzeitreihen.
 
-## Backtest DR2→DR3: Zieldefinition
+## Massenschätzung und Ziele
 
-DR3 hat keine Tabelle `nss_masses` (kommt erst mit DR4). Die Rolle übernimmt `gaiadr3.binary_masses` (Spalte `m2`, in Sonnenmassen; 13 M_Jup = 0,0124 M_sun, 80 M_Jup = 0,0764 M_sun).
+`gaiadr3.binary_masses` enthält keinen einzigen Begleiter unter 32 M_Jup (Experiment-Log 2026-09-25). Die Tabelle ist deshalb das falsche Werkzeug für das Ziel. Wir schätzen die Begleitermasse selbst aus den Bahnparametern (`src/gaia_wobble/masses.py`):
 
-| Ziel | Definition |
-|---|---|
-| Hauptziel | DR3-Lösung vom Typ `Orbital`, Begleitermasse `m2` aus `binary_masses` unter 13 M_Jup. Wo `binary_masses` fehlt: eigene Schätzung nach der Näherung „dunkler Begleiter“ (Licht nur vom Hauptstern), gekennzeichnet als Schätzung |
-| Nebenziel | Begleitermasse unter 80 M_Jup |
-| Getrennt ausgewertet | `OrbitalTargetedSearch` und `OrbitalTargetedSearchValidated` |
+- Photozentrum-Bahn aus den Thiele-Innes-Elementen (A, B, F, G) und Parallaxe, Periode aus `nss_two_body_orbit`.
+- Annahme „dunkler Begleiter“ (Licht nur vom Hauptstern), Kepler: `m2^3 / (m1 + m2)^2 = a1^3 / P^2`. Die Thiele-Innes-Elemente enthalten die Neigung, das Ergebnis ist eine echte Masse, keine Mindestmasse.
+- Hauptsternmasse `m1` aus `binary_masses` (Gaia-eigene Schätzung). Lösungen ohne `m1` bekommen keine Schätzung und zählen nicht.
+- Validierung: Für 6.948 Lösungen mit Gaia-eigenem `m2` liegt das Verhältnis Schätzung/Gaia bei median 1,000 (Quartile 1,000/1,000). Die Formel entspricht der von Gaia.
+- Zurückgezogene Lösungen sind ausgeschlossen (Gaia DR3 „known issues“): Gaia DR3 4698424845771339520 (WD 0141-675), 5765846127180770432 (HIP 64690), 522135261462534528 (54 Cas), 1712614124767394816 (HIP 66074).
 
-Begründung für die Trennung: Gaia hat `OrbitalTargetedSearch` gezielt für Sterne gerechnet, die schon aus anderen Katalogen als Planetenkandidaten bekannt waren. Unsere Labels stammen aus ähnlichen Quellen, das Modell würde dort bekannte Sterne wiedererkennen und der Backtest wäre zu optimistisch.
+Ergebnis in DR3, Typ `Orbital`, mit `m1` (110.693 Lösungen): 1.503 unter 80 M_Jup, 17 unter 13 M_Jup.
+
+| Ziel | Backtest DR2→DR3 | Wette DR3→DR4 |
+|---|---|---|
+| Hauptziel | `Orbital`-Lösung mit geschätzter Masse unter **80 M_Jup** (substellar) | `nss_two_body_orbit` oder `nss_multiple_orbits`, geschätzte Masse unter **13 M_Jup** (gleiche Formel) |
+| Nebenziel | unter 13 M_Jup, nur als Tendenz (17 Treffer) | unter 80 M_Jup; zusätzlich ausgewertet mit `nss_masses`, falls vorhanden |
+| Getrennt ausgewertet | `OrbitalTargetedSearch(Validated)` | dito |
+
+Begründung für die Trennung: Gaia hat `OrbitalTargetedSearch` gezielt für Sterne gerechnet, die schon aus anderen Katalogen als Planetenkandidaten bekannt waren. Unsere Labels stammen aus ähnlichen Quellen, das Modell würde dort bekannte Sterne wiedererkennen.
+
+Vergleichbarkeit: Backtest und Wette benutzen dieselbe Massenformel und hängen nicht davon ab, welche Massen ESA in `nss_masses` aufnimmt.
 
 Grenzen des Backtests (nicht überinterpretieren):
 - **Kein Leakage:** Die Backtest-Stichprobe wird komplett mit DR2-Werten ausgewählt und gefiltert: DR2-Parallaxe, DR2-Qualitätsfilter, RUWE aus `gaiadr2.ruwe`. Nahe Sterne dürfen nie über DR3-Parallaxen bestimmt werden, sonst fließt Wissen aus der Zukunft in den Test.
@@ -99,3 +109,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.3 | 2026-09-25 | Datenbasis mit gemessenen Größen; vorläufiger Qualitätsfilter `parallax_over_error > 10`; RUWE-Kalibrierung fest eingeplant | Ungefilterter Katalog enthält viele schlecht gemessene Sterne mit hohem RUWE; Daten sind klein genug für die Kalibrierung |
 | 0.4 | 2026-09-25 | Regel „kein Leakage“ für die DR2-Stichprobe; Filter-Prüfung an Labels und `Orbital`-Lösungen vorgeschrieben | Filter kann gerade die wackelnden Sterne entfernen |
 | 0.5 | 2026-09-25 | Hauptmetrik „nur neue Treffer“; Leakage-Regeln (Stand DR2, `disc_year <= 2017`, Kontrollsterne) | Bekannte Planetensterne und Zukunftsdaten machen Backtest und Metrik zu leicht |
+| 0.6 | 2026-09-25 | Massenschätzung aus Bahnparametern statt `binary_masses`; Backtest-Hauptziel unter 80 M_Jup, Nebenziel unter 13 M_Jup; DR4-Hauptziel auf dieselbe Schätzung umgestellt; zurückgezogene DR3-Lösungen ausgeschlossen | `binary_masses` hat keinen Begleiter unter 32 M_Jup, Backtest-Ziel hätte 0 Treffer; Vergleichbarkeit zwischen Backtest und Wette |
