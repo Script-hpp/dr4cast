@@ -344,3 +344,21 @@ Beide Listen aus einem Lauf (Manifest-Stand 0.14, Git-Stand 41a4961, Datei-Kopf 
 | Median `P(m2 < 13)` | 0,32 | 1,0 |
 
 Die Ausschlüsse (bekannte Fälle, Planetensterne, Nachbarn) entfernen nur 50 bzw. 23 Sterne aus den ersten 150 bzw. 123 Rohplätzen. Die Top 100 der beiden Listen überschneiden sich in 6 Sternen. Beide Listen haben einen Beschleunigungs-Anteil, der etwa zehnmal bis 16-mal über der Population liegt (1,2 %). Der Lauf ist ein Test des Werkzeugs, keine Einfrierung: Die Modelle, Features und Regeln sind nach 0.15 noch nicht als endgültig erklärt.
+
+## 2026-09-25 – Auswertungsskript (`evaluate_bet.py`), Probelauf auf dem Backtest
+
+Ein Code für Probelauf (DR2-Scores → DR3-Ergebnisse) und echte Auswertung (DR3-Listen → DR4-Ergebnisse). Der Probelauf liefert die bereits geloggten Zahlen (Population 2.304.873 Sterne, Ziele `y80` 1.304, `y13` 17, `y13_ms` 4, `y80_ms` 430):
+
+| Liste/Baseline | Ziel | P@100 | P@1000 | AUC | Anmerkung |
+|---|---|---|---|---|---|
+| Liste 1 (Physik-Variante) | `y80` | 0,15 | 0,093 | 0,966 | wie Ablations-Tabelle |
+| Liste 2 (mit `ms_offset < 0,2`) | `y80` | 0,02 | 0,038 | – | 409 Ziele in der Menge |
+| Liste 2 | `y13_ms` | 0 | 0,002 | – | 4 Ziele, 2 in den Top 1.000 |
+| RUWE | `y80` | 0 | 0 | 0,783 | |
+| `ruwe_z` | `y80` | 0 | 0 | 0,830 | |
+
+Die Population liegt um 4 Sterne über der bisherigen (2.304.869): Das Skript schließt positive Sterne nie als „unbekannt“ aus, `targets_dr2.parquet` hat 4 Sterne mit gemischten verknüpften Lösungen anders behandelt. Ohne Einfluss auf die Kennzahlen (Test bestanden).
+
+**Beobachtung zu Liste 2:** Der Median von `P(m2 < 13)` liegt in den Top 100 bei 1,0. Der Faktor ist dort fast immer ausgereizt und wirkt eher als Filter denn als Gewichtung; die Reihenfolge innerhalb der Liste bestimmt fast allein `P_A`. Die Amplituden-Verzerrung von etwa 40 % (Amplitude zu klein, `P(m2 < 13)` zu groß) verstärkt das. Keine Änderung, aber im Bericht so zu beschreiben. Für die Top 100 heißt das: Liste 2 ist Liste 1 auf Sternen mit `ms_offset < 0,2` und kleiner Wackel-Amplitude, sortiert nach `P_A`.
+
+Noch nicht enthalten: Konkurrenz-Listen (nicht beschafft), Nachbar-Ausschluss für die Baselines im Probelauf (Nachbarn für alle Sterne des Backtest lagen nicht vor; für die Baselines der echten Auswertung wird der Pool wie bei den Listen abgefragt).

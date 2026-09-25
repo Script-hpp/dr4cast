@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.15
+**Version:** 0.16
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -114,6 +114,15 @@ Regeln:
 
 **Erklärbarkeit:** SHAP; dominieren Helligkeit und Entfernung statt der Wackel-Features, lernt das Modell den Bias. Erwartung für Modell B: Wegen `ruwe_z` der Planetensterne von −0,03 lernt es vor allem den Survey-Bias; das ist als Beleg vorgesehen.
 
+## Auswertungsskript
+
+Das Skript `src/gaia_wobble/evaluate_bet.py` wird zusammen mit den Listen eingefroren (derselbe Git-Tag). Es enthält alle Entscheidungen, die sonst erst nach dem Release fielen:
+- **Verknüpfung DR3→DR4:** nur über `dr3_neighbourhood`; bei mehreren Kandidaten gewinnt der kleinste Winkelabstand, bei Gleichstand der kleinste Betrag des Helligkeitsunterschieds. Ein Stern ohne Verknüpfung hat kein Ergebnis und zählt als negativ.
+- **Ziele:** `y80`, `y13`, `y13_ms` (Hauptziel Liste 2), `y80_ms`; `OrbitalTargetedSearch*`, `OrbitalAlternative*` und Bahnen ohne Massenschätzung sind ausgeschlossen (Label unbekannt), gezielte Suchen werden getrennt gezählt. Die Massenschätzung ist die aus `masses.py`; `ms_offset` für `y13_ms` kommt aus den DR4-Werten mit derselben Methode wie in DR2 und DR3 (Hauptreihe je Release aus dem eigenen Nahsternkatalog).
+- **Metriken:** alle Kennzahlen des Manifests je Liste, je Ziel, jeweils „alle Treffer“ und „nur neue Treffer“, nach Helligkeitsklassen, dazu die Baselines RUWE und `ruwe_z` und, falls beschafft, die Konkurrenz-Listen.
+- **Probelauf:** Auf den Backtest-Daten (DR2-Scores gegen das DR3-Ziel) liefert das Skript die bereits im Log stehenden Zahlen; ein Test (`test_evaluate_bet.py`) prüft das.
+- **Grenze:** Die DR4-Seite (Laden der Tabellen) ist nicht testbar, bevor DR4 existiert. Das erwartete Format steht im Kopf des Skripts, `check_dr4_schema` bricht bei abweichenden Tabellen mit einer klaren Meldung ab. Anpassungen an das echte DR4-Schema sind nach dem Release erlaubt, wenn sie sich nur auf Dateinamen und Spaltennamen beziehen; sie werden als „Schema-Anpassung“ mit dem Diff im Experiment-Log veröffentlicht. Jede inhaltliche Änderung (Ziele, Metriken, Verknüpfungsregel) gilt als Nachtrag und wird gekennzeichnet.
+
 ## Validierung
 
 1. Backtest DR2→DR3.
@@ -175,3 +184,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.13 | 2026-09-25 | Modell A = Physik-Variante (9 Merkmale, Mittel der fünf Regions-Modelle); `ms_offset < 0,2` als Bedingung für Liste 2 | Ablationen: gleiche Leistung im Streuungsbereich; Beobachtungszahlen und Parallaxen-Fehler verändern sich mit der Messdauer der Releases; das Modell bevorzugt Sterne über der Hauptreihe, bestätigte dunkle Begleiter liegen darauf |
 | 0.14 | 2026-09-25 | Amplituden-Feature nach Mindestgüte angenommen, Score von Liste 2 festgelegt; Nachbar-Filter (2") für beide Listen | Mindestgüte (Median 0,58 in 0,5–2, ρ 0,92 > 0,6) erfüllt; Nachbar-Test im Backtest erfüllt die vorab festgelegte Regel (Verhältnis 0,11, p < 0,0001) |
 | 0.15 | 2026-09-25 | Hauptziel von Liste 2 um `ms_offset < 0,2` ergänzt; Ziel ohne die Bedingung zusätzlich berichtet | 13 von 17 Backtest-Zielen unter 13 M_Jup liegen 0,41–0,91 mag über der Hauptreihe (vermutlich leichte Doppelsterne) und sind für Liste 2 ausgeschlossen; Liste und Ziel sollen dieselbe Idee umsetzen |
+| 0.16 | 2026-09-25 | Auswertungsskript und seine Entscheidungen (Verknüpfung, Ziele, Ausschlüsse, Schema-Anpassung) festgeschrieben | Sonst würden diese Entscheidungen erst nach dem Release fallen |
