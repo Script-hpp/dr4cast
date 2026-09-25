@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.7
+**Version:** 0.8
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -50,6 +50,14 @@ Rohdaten bleiben vollständig erhalten; gefiltert wird erst beim Aufbereiten. Gr
 - Vorläufig: `parallax_over_error > 10`. Endgültig festgelegt wird der Schwellwert vor dem Einfrieren, begründet im Experiment-Log (`docs/experiment_log.md`).
 - Der Filter hängt mit dem Signal zusammen: Gaia rechnet den Excess Noise in `parallax_error` ein, ein wackelnder Stern bekommt also ein kleineres `parallax_over_error`. Prüfung vor der Festlegung: Anteil der Labels und der `Orbital`-Lösungen, die die Schwellen 5, 10 und „kein Filter“ überleben, im Vergleich zu allen Sternen (Eintrag im Experiment-Log).
 - Nachteil, der mitentschieden werden muss: Der Filter bevorzugt helle Sterne und entfernt lichtschwache M-Zwerge in 100–200 pc. Das wirkt wie zusätzlicher Survey-Bias und wird nach Helligkeitsklassen ausgewertet.
+
+### „Neue Treffer“ in der Wette
+
+In DR3 haben schon über tausend Sterne eine Bahnlösung mit substellarem Begleiter (1.306 in unserer Stichprobe), und sie haben einen hohen `ruwe_z` (Median 5,7). Modell A sortiert sie weit oben ein, und sie bekommen in DR4 fast sicher wieder eine Bahn. Im Backtest gab es das nicht, weil DR2 keine Bahnlösungen hatte. Ein Treffer bei diesen Sternen ist keine Vorhersage.
+
+- **Hauptmetrik der Wette:** Nur Sterne ohne DR3-Bahnlösung mit geschätzter Masse unter 80 M_Jup (Typ `Orbital*`, ohne zurückgezogene Lösungen) und ohne bekannten Planeten (NASA-Labels) zählen als „neue Treffer“.
+- **Zusätzlich berichtet:** Die Auswertung der ganzen Top-Liste, inklusive dieser Sterne, klar gekennzeichnet.
+- **Eingefrorene Liste:** Die bekannten Sterne bleiben in der Liste und werden nur markiert (`known_dr3_orbit`, `known_planet`), damit die Liste nachvollziehbar ist. Die Top-100 der Hauptmetrik werden nach dem Ausschluss dieser Sterne gebildet, die 100 Plätze also mit Sternen ohne bekanntes Ergebnis gefüllt.
 
 ## Modell
 
@@ -126,3 +134,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.5 | 2026-09-25 | Hauptmetrik „nur neue Treffer“; Leakage-Regeln (Stand DR2, `disc_year <= 2017`, Kontrollsterne) | Bekannte Planetensterne und Zukunftsdaten machen Backtest und Metrik zu leicht |
 | 0.6 | 2026-09-25 | Massenschätzung aus Bahnparametern statt `binary_masses`; Backtest-Hauptziel unter 80 M_Jup, Nebenziel unter 13 M_Jup; DR4-Hauptziel auf dieselbe Schätzung umgestellt; zurückgezogene DR3-Lösungen ausgeschlossen | `binary_masses` hat keinen Begleiter unter 32 M_Jup, Backtest-Ziel hätte 0 Treffer; Vergleichbarkeit zwischen Backtest und Wette |
 | 0.7 | 2026-09-25 | Hauptmodell A = Transfer (DR2-Features → DR3-Ziel, angewendet auf DR3-Features → DR4); NASA-Label-Modelle als Vergleich (B, B'); NSS-Lösungstyp in A kein Feature | Bekannte Planetensterne haben `ruwe_z` −0,03 (nicht von der Population unterscheidbar), das Label enthält kein Wackel-Signal; Entscheidung vor dem ersten Training und unabhängig vom Backtest-Ergebnis |
+| 0.8 | 2026-09-25 | Wette: „neue Treffer“ schließt Sterne mit DR3-Bahnlösung unter 80 M_Jup und bekannte Planetensterne aus; Markierung statt Streichung in der eingefrorenen Liste | In DR3 gibt es schon über tausend solcher Sterne, sie wären Treffer ohne Vorhersage |
