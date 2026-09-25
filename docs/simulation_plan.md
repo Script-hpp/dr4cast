@@ -53,3 +53,14 @@ Bestehen Punkt 1 oder 2 nicht, wird die Simulation **nicht** für die Score-Frag
 ## 6. Ablage
 
 Code unter `src/gaia_wobble/simulation/`, Konfiguration unter `configs/`, Ergebnisse (Tabellen, Startwerte, Prüfsummen der Zwischendaten) unter `data/` (nicht im Repository) und Zusammenfassungen im Experiment-Log. Jede Abweichung von diesem Plan wird mit Begründung im Log vermerkt, bevor die betroffene Auswertung läuft.
+
+## Befund Schritt 0 (2026-09-25, vor jedem Simulationslauf)
+
+`astromet` 1.1.9 wurde in einer Wegwerf-Umgebung installiert und der Quelltext gelesen (`fits.py`, `tracks.py`). Was das Paket liefert und was nicht:
+
+- **Liefert:** die Bahn eines Sterns mit Begleiter über die Klasse `params` (Beschreibung des Systems: Periode in Jahren, große Halbachse in AU, Exzentrizität, Massenverhältnis `q`, Lichtverhältnis `l`, Orientierung `vtheta`, `vphi`, `vomega`, Periastronzeit, Parallaxe, Eigenbewegung), eine Nachahmung der Gaia-Anpassung (`gaia_fit`) und die Ausgabe in Gaia-Spaltennamen (`gaia_results`): `astrometric_excess_noise`, `astrometric_chi2_al`, `astrometric_n_good_obs_al`, `astrometric_n_obs_al`, `visibility_periods_used` und `uwe`. Die Fehler einer Einzelmessung nach Helligkeit stammen aus den mitgelieferten Daten (`scatteral_edr3.csv`).
+- **Liefert nicht:** das Scan-Muster. `gaia_fit` erwartet Beobachtungszeiten `ts` und Scan-Winkel `phis` als Eingabe; das Paket bringt keine Scanning-Law für DR3 oder DR4 mit (Abhängigkeiten: `numpy`, `astropy`, `scipy`). Die „Näherung des Scan-Musters“ aus dem Plan müssen wir also selbst bauen (Beobachtungszeiten und Winkel für 66 Monate). Das ist die größte Modellannahme der Simulation und wird vor dem Realitätscheck im Code und im Log beschrieben.
+- **`uwe` ist nicht `RUWE`.** Die Normierung `u0(G, Farbe)` von Gaia fehlt. Ersatz (wird im Bericht genannt): `RUWE_sim = uwe / Median(uwe der simulierten Nullprobe bei gleicher Helligkeit)`. Die Nullprobe aus Schritt 1 liefert diese Normierung.
+- **`astrometric_excess_noise_sig`** wird nicht ausgegeben. Ersatz: empirische Abbildung von `astrometric_excess_noise` auf die Signifikanz über die Nullprobe.
+
+Die Schritte 1 bis 4 des Plans bleiben unverändert. Zum Realitätscheck kommt hinzu, dass die Nullprobe (Schritt 1, Punkt 1) auch die beiden Ersatzgrößen kalibriert. Gaia-4 b und Gaia-5 b werden mit den Bahnelementen aus dem NASA Exoplanet Archive und den Entdeckungsarbeiten simuliert (noch nicht abgerufen).
