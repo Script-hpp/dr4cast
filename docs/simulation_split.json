@@ -1,0 +1,48 @@
+{
+  "check_c_sample_calibration": {
+    "n": 100,
+    "sha256_of_sorted_ids": "e97614a1918f56f7a72e46cd7ee64e664ff7b0e788b01006ff6debb0d562a345"
+  },
+  "check_c_sample_test": {
+    "n": 100,
+    "sha256_of_sorted_ids": "e2bf0fc9e9f8d856e51e190f950322f562e6671ab10b8327c05907d9be9aa6d0"
+  },
+  "check_c_strata": {
+    "cells_used": 55,
+    "mass_edges_mjup": [
+      0.0,
+      50.0,
+      150.0,
+      400.0,
+      1000.0,
+      "inf"
+    ],
+    "period_edges_days": [
+      0.0,
+      200.0,
+      500.0,
+      "inf"
+    ]
+  },
+  "null_by_g_class": {
+    "calibration": {
+      "10-13": 334,
+      "13-16": 358,
+      "G<10": 358
+    },
+    "test": {
+      "10-13": 366,
+      "13-16": 342,
+      "G<10": 342
+    }
+  },
+  "null_sample_calibration": {
+    "n": 1050,
+    "sha256_of_sorted_ids": "53d6c83041563933c43cf3c5bf5a02d375ab314d7377cfc9f27cddb203bc1a73"
+  },
+  "null_sample_test": {
+    "n": 1050,
+    "sha256_of_sorted_ids": "ec2829c35d19401bea862e752c2c745226f3c4b516fcf70e941ec2b34a398b1f"
+  },
+  "seed": 20260926
+}
