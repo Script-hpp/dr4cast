@@ -30,6 +30,11 @@ Stand: 2026-09-25. Erledigt: DR3-Hauptkatalog (Download läuft), NSS-Tabellen, N
 - Die 461 Sterne ohne `m1` weder positiv noch negativ.
 - Prüfen: Anteil bekannter Doppelsterne in den Top 100; Gaia-4 b und Gaia-5 b erst bei der DR4-Vorhersage.
 
+### Liste 2 (unter 13 M_Jup): Amplituden-Feature
+- Aus `ruwe_excess` die Photozentrum-Amplitude abschätzen und an den DR3-`Orbital`-Lösungen validieren (bekannte Amplitude `a0`); Mindestgüte vorher im Log festlegen.
+- Daraus mit Sternmasse und Parallaxe `P(m2 < 13 M_Jup)`.
+- Kiefer-et-al.-Katalog für das Leaderboard beschaffen (Verfügbarkeit prüfen).
+
 ## 5. Erklärbarkeit und Bias
 - SHAP: Dominieren Helligkeit und Entfernung statt der Wackel-Features?
 - Vergleich der Filter-Schwellen 5, 10, ohne Filter nach Helligkeitsklassen; endgültigen Schwellwert dann im Manifest festlegen.

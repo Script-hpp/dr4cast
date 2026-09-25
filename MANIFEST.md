@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.8
+**Version:** 0.9
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -17,13 +17,13 @@ Das Manifest darf jederzeit angepasst werden, solange wir lernen. Die Glaubwürd
 
 | Regel | Festlegung |
 |---|---|
-| Hauptziel | Stern hat in DR4 eine Bahnlösung (`nss_two_body_orbit` oder `nss_multiple_orbits`) mit Begleitermasse unter 13 Jupitermassen; Masse nach der eigenen Schätzung (siehe „Massenschätzung und Ziele“), `nss_masses` zusätzlich als Vergleich |
-| Nebenziel | Begleitermasse unter 80 Jupitermassen (inkl. Brauner Zwerge), gleiche Schätzung |
+| Hauptziel (zwei gleichrangige Listen) | Stern hat in DR4 eine Bahnlösung (`nss_two_body_orbit` oder `nss_multiple_orbits`) mit Begleitermasse nach der eigenen Schätzung (siehe „Massenschätzung und Ziele“). **Liste 1:** unter 80 Jupitermassen. **Liste 2 („Planetenliste“):** unter 13 Jupitermassen. `nss_masses` zusätzlich als Vergleich |
+| Nebenziel | Auswertung getrennt nach Helligkeitsklassen und nach `OrbitalTargetedSearch`; ESA-Massen aus `nss_masses` |
 | Offizielle ESA-Liste | Falls veröffentlicht: zusätzliche Auswertung, ersetzt nicht das Hauptziel |
 | Verknüpfung DR3→DR4 | Nur über die Tabelle `dr3_neighbourhood`, nie über gleiche `source_id` |
 | Metriken | P@10, P@30, P@100, Recall@100, absolute Treffer; zusätzlich nach Helligkeitsklassen. Jede Metrik wird zweifach berichtet: *alle Treffer* und *nur neue Treffer* (Sterne, die nicht in den Trainingslabels waren). **Hauptmetrik ist „nur neue Treffer“**, weil bekannte Planetensterne leicht wiederzufinden sind |
 | Vergleich | RUWE-Sortierung, ExoDNN, Sahlmann & Gómez (P@20) |
-| Offizielle Wette | Version 2, falls vor dem Release veröffentlicht und stabil, sonst Version 1 |
+| Offizielle Wette | Beide Listen werden vor dem Release eingefroren und immer beide berichtet. Keine wird nachträglich zur Hauptliste erklärt |
 
 Hinweis: Laut ESA gibt es in DR4 keine eigene Exoplaneten-Tabelle; Begleiter erscheinen in den Non-Single-Star-Tabellen (ESA, Stand 14.09.2026).
 
@@ -50,6 +50,17 @@ Rohdaten bleiben vollständig erhalten; gefiltert wird erst beim Aufbereiten. Gr
 - Vorläufig: `parallax_over_error > 10`. Endgültig festgelegt wird der Schwellwert vor dem Einfrieren, begründet im Experiment-Log (`docs/experiment_log.md`).
 - Der Filter hängt mit dem Signal zusammen: Gaia rechnet den Excess Noise in `parallax_error` ein, ein wackelnder Stern bekommt also ein kleineres `parallax_over_error`. Prüfung vor der Festlegung: Anteil der Labels und der `Orbital`-Lösungen, die die Schwellen 5, 10 und „kein Filter“ überleben, im Vergleich zu allen Sternen (Eintrag im Experiment-Log).
 - Nachteil, der mitentschieden werden muss: Der Filter bevorzugt helle Sterne und entfernt lichtschwache M-Zwerge in 100–200 pc. Das wirkt wie zusätzlicher Survey-Bias und wird nach Helligkeitsklassen ausgewertet.
+
+### Die zwei Listen der Wette
+
+- **Liste 1 (unter 80 M_Jup):** Top 100 nach der Wahrscheinlichkeit `P(substellar)` aus Modell A. Im Backtest validiert (1.306 erreichbare Treffer).
+- **Liste 2 (unter 13 M_Jup, Planetenliste):** Top 100 nach `P(substellar) × P(m2 < 13 M_Jup)`. Die zweite Wahrscheinlichkeit kommt aus einem zusätzlichen Feature: Aus `ruwe_excess` wird die Wackel-Amplitude abgeleitet, daraus mit Sternmasse und Parallaxe der Bereich möglicher Begleitermassen (Prinzip wie Kiefer et al. 2025).
+- Beide Listen: Hauptmetrik „nur neue Treffer“ (siehe oben), beide werden vor dem Release eingefroren, beide werden berichtet.
+- Der Kandidatenkatalog von Kiefer et al. (2025) kommt als zusätzlicher Vergleich für Liste 2 ins Leaderboard, sofern er öffentlich verfügbar ist.
+
+Vor dem Einfrieren zu klären (Teil des Manifests):
+- Die Ableitung Amplitude → Massenbereich ist neu und wird an den DR3-Bahnlösungen validiert (dort ist die Amplitude bekannt): Wie gut sagt `ruwe_excess` die Photozentrum-Amplitude voraus? Erfüllt sie die im Log festgelegte Mindestgüte nicht, gilt der Rückfall: Liste 2 = Top 100 nach `P(substellar)` unter Sternen mit geschätzter Amplitude im Planetenbereich, ohne Wahrscheinlichkeitsprodukt. Die Mindestgüte wird vor der ersten Auswertung im Log festgelegt.
+- **Grenze:** Liste 2 ist im Backtest mit nur 17 Treffern kaum validierbar. Sie ist bewusst eine Wette ins Unbekannte.
 
 ### „Neue Treffer“ in der Wette
 
@@ -135,3 +146,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.6 | 2026-09-25 | Massenschätzung aus Bahnparametern statt `binary_masses`; Backtest-Hauptziel unter 80 M_Jup, Nebenziel unter 13 M_Jup; DR4-Hauptziel auf dieselbe Schätzung umgestellt; zurückgezogene DR3-Lösungen ausgeschlossen | `binary_masses` hat keinen Begleiter unter 32 M_Jup, Backtest-Ziel hätte 0 Treffer; Vergleichbarkeit zwischen Backtest und Wette |
 | 0.7 | 2026-09-25 | Hauptmodell A = Transfer (DR2-Features → DR3-Ziel, angewendet auf DR3-Features → DR4); NASA-Label-Modelle als Vergleich (B, B'); NSS-Lösungstyp in A kein Feature | Bekannte Planetensterne haben `ruwe_z` −0,03 (nicht von der Population unterscheidbar), das Label enthält kein Wackel-Signal; Entscheidung vor dem ersten Training und unabhängig vom Backtest-Ergebnis |
 | 0.8 | 2026-09-25 | Wette: „neue Treffer“ schließt Sterne mit DR3-Bahnlösung unter 80 M_Jup und bekannte Planetensterne aus; Markierung statt Streichung in der eingefrorenen Liste | In DR3 gibt es schon über tausend solcher Sterne, sie wären Treffer ohne Vorhersage |
+| 0.9 | 2026-09-25 | Wette mit zwei gleichrangigen Listen (unter 80 M_Jup und unter 13 M_Jup); Liste 2 mit Massenwahrscheinlichkeit aus `ruwe_excess`; Rückfallregel bei ungenügender Validierung | Modell A wird auf unter 80 M_Jup trainiert (1.306 Treffer); das Planetenziel unter 13 M_Jup (17 Treffer) bleibt als eigene Liste erhalten |
