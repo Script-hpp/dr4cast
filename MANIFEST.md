@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.13
+**Version:** 0.14
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -63,6 +63,9 @@ Vor dem Einfrieren zu klären (Teil des Manifests):
 - **Rückfallregel (unabhängig vom Amplituden-Feature):** Erfüllt das Feature die Mindestgüte nicht, ist Liste 2 die Top 100 nach `P(substellar)` unter nahen, leichten Sternen: Sternmasse unter 0,6 Sonnenmassen und Entfernung unter 100 pc. Das benutzt nur die Physik (leichte, nahe Sterne zeigen den Planeten-Wackel am stärksten), keine Größe aus der Amplitudenrechnung.
 - **Sternmasse für alle Sterne** (nicht nur für Sterne mit NSS-Lösung): In der Wette FLAME-Massen aus `gaiadr3.astrophysical_parameters`, bei Lücken eine Masse-Helligkeits-Beziehung (Herkunft markiert). Im Backtest nur die Masse-Helligkeits-Beziehung mit DR2-Photometrie, weil FLAME ein DR3-Produkt ist und sonst Wissen aus der Zukunft einfließt.
 - **`ms_offset`-Regel für Liste 2:** Nur Sterne mit `ms_offset < 0,2` mag (nahe der Hauptreihe) können in Liste 2 stehen. Begründung: Das Modell bevorzugt Sterne über der Hauptreihe, die Ziele des Backtests liegen im Median bei 0,45 mag darüber (vermutlich leichte Doppelsterne mit zu klein geschätzter Masse), bestätigte astrometrische substellare Begleiter dagegen bei −0,08 (Quartile −0,46/0,17). Der Schwellwert 0,2 entspricht etwa dem oberen Quartil dieser bestätigten Begleiter und ist damit festgelegt, bevor Modell A auf DR3 angewendet wurde. Liste 1 bleibt ohne diese Regel (wir wetten auf das, was Gaia veröffentlicht, samt Verunreinigung).
+- **Amplituden-Feature (Mindestgüte erfüllt, Details im Experiment-Log):** `σ_formal` nach Kiefer et al. (2025, Gl. 8) aus den Katalogdaten je Helligkeits- und Farbbin, `AEN_est = σ_formal · sqrt(max(χ²/(N − 5) − 1, 0))`, Amplitude `a_est = sqrt(2) · AEN_est`. Aus `a_est`, Parallaxe und Sternmasse (`mass_ms`) folgt der Massenbereich für Perioden von 0,5 bis 5 Jahren (logarithmisch gleichverteilt); `P(m2 < 13 M_Jup)` ist der Anteil dieses Bereichs unter 13 M_Jup. Validierung an 9.914 DR3-Bahnlösungen: Median `a_est / a0` = 0,58, Spearman-Rangkorrelation 0,92. Bekannte Verzerrung: Die Amplitude ist im Median um etwa 40 % zu klein, `P(m2 < 13)` damit eher zu groß; keine Korrektur.
+- **Score von Liste 2:** `P_A(substellar) × P(m2 < 13 M_Jup)`, nur für Sterne mit `ms_offset < 0,2`. Die frühere Rückfallregel (Sternmasse unter 0,6 M_sun, unter 100 pc) gilt nur, falls das Feature seine Mindestgüte nicht erfüllt hätte; das ist nicht der Fall.
+- **Nachbar-Filter (beide Listen):** Sterne mit einem Gaia-Nachbarn innerhalb von 2" (im Katalog des jeweiligen Releases) werden aus den Listen ausgeschlossen. Im Backtest lag die Trefferquote in den Top 2.000 mit Nachbar bei 0,9 % gegenüber 8,6 % ohne (Verhältnis 0,11, Fisher p < 0,0001); die vorab festgelegte Regel (Verhältnis höchstens 0,5, p < 0,01) ist erfüllt.
 - **Grenze:** Liste 2 ist im Backtest mit nur 17 Treffern kaum validierbar. Sie ist bewusst eine Wette ins Unbekannte.
 
 ### Modell A: festgelegte Variante
@@ -166,3 +169,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.11 | 2026-09-25 | Zusatzmetriken AUC, AP, Recall@1/5/10 % neben P@k und Recall@100 | Die RUWE-Baseline hat im Backtest P@100 = 0; ohne Kurvenmetriken lassen sich die Modelle nicht vergleichen. Festgelegt nach Blick auf die Baseline, vor jedem Modell |
 | 0.12 | 2026-09-25 | P@1000 als praxisnahe Zwischenstufe aufgenommen; Features `ms_offset`, `wobble_ratio`, `mass_ms` (physikalisch motiviert, je Release aus eigenen Daten) in die gemeinsamen Merkmale; Training mit regionaler Aufteilung (HEALPix) | Baseline: Extremwackler sind Doppelsterne, das Modell braucht ein Fenster; Gaias Messfehler sind regional korreliert |
 | 0.13 | 2026-09-25 | Modell A = Physik-Variante (9 Merkmale, Mittel der fünf Regions-Modelle); `ms_offset < 0,2` als Bedingung für Liste 2 | Ablationen: gleiche Leistung im Streuungsbereich; Beobachtungszahlen und Parallaxen-Fehler verändern sich mit der Messdauer der Releases; das Modell bevorzugt Sterne über der Hauptreihe, bestätigte dunkle Begleiter liegen darauf |
+| 0.14 | 2026-09-25 | Amplituden-Feature nach Mindestgüte angenommen, Score von Liste 2 festgelegt; Nachbar-Filter (2") für beide Listen | Mindestgüte (Median 0,58 in 0,5–2, ρ 0,92 > 0,6) erfüllt; Nachbar-Test im Backtest erfüllt die vorab festgelegte Regel (Verhältnis 0,11, p < 0,0001) |

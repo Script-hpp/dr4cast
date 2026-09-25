@@ -284,3 +284,27 @@ Test: DR2-Out-of-Fold-Scores der Physik-Variante; Treffer-Anteil (Ziel unter 80 
 **Mindestgüte (vor der Berechnung festgelegt):** Validierung an den DR3-`Orbital`-Lösungen mit Massenschätzung (bekannte Photozentrum-Amplitude `a0` aus den Thiele-Innes-Elementen). Das Feature gilt als tauglich, wenn (a) der Median des Verhältnisses `a_est / a0` zwischen 0,5 und 2 liegt und (b) die Spearman-Rangkorrelation zwischen `a_est` und `a0` über 0,6 liegt. Getrennt berichtet nach Helligkeitsklasse und Periode. Erfüllt das Feature das nicht, bleibt Liste 2 „Liste 1 mit `ms_offset`-Filter“ und das steht so im Manifest.
 
 Einschränkungen, die vorab feststehen: Die Validierung an Bahnlösungen ist geschönt (starke Wackler, Perioden im günstigen Bereich); die Amplitude wird für Perioden über der Messdauer unterschätzt; `σ_formal` hängt bei Kiefer et al. auch von der Himmelsposition ab (bis Faktor 2, dichte Felder), wir nutzen nur Helligkeit und Farbe.
+
+## 2026-09-25 – Ergebnis Nachbar-Test (DR2) und Amplituden-Feature (Regeln vom Vortag)
+
+**Nachbar-Test im Backtest** (Gaia-DR2-Positionen, Radius 2", Out-of-Fold-Scores der Physik-Variante, Top 2.000):
+
+| | Sterne | Treffer | Treffer-Anteil |
+|---|---|---|---|
+| ohne Nachbar | 1.780 | 153 | 8,6 % |
+| mit Nachbar | 220 | 2 | 0,9 % |
+
+Verhältnis 0,11, exakter Test nach Fisher p < 0,0001. Die vorab festgelegte Regel (Verhältnis höchstens 0,5 und p < 0,01) ist erfüllt. Nachbaranteil: Ziele 1 %, zufällige Negative 12,9 %, Top 100 8 %, Top 1.000 10,6 %; in den Top 100 und Top 1.000 Trefferquote mit Nachbar 0 % bzw. 0,9 %, ohne 16,3 % bzw. 10,3 %. Sterne mit engem Nachbarn sind fast nie Treffer: Enge Paare erzeugen Rauschen, das die Bahnlösung von Gaia nicht annimmt. (Beobachtung in DR3: 31 % der Top 100 haben einen DR3-Nachbarn innerhalb von 2", in DR2 nur 8 %; DR3 löst engere Paare besser auf, und die Nachbarzahl ist je Katalog zu bestimmen.) Folge: Manifest 0.14, Nachbar-Filter für beide Listen.
+
+**Amplituden-Feature** (`amplitude.py`): `σ_formal` nach Kiefer et al. Gl. 8 aus unseren Katalogdaten, Median je Bin: G < 13: 0,082 mas, G 13–16: 0,19 mas, G 16–18: 0,50 mas, G ≥ 18: 1,8 mas. Das entspricht den Werten von Kiefer et al. für G < 16 (0,08–0,3 mas; Abb. 2). Für G > 16 gibt das Paper keine Werte an; die Extrapolation ist von uns. Validierung an 9.914 DR3-`Orbital`-Lösungen (wahre Amplitude `a0` aus den Thiele-Innes-Elementen):
+
+| Größe | Wert | Vorgabe |
+|---|---|---|
+| Median `a_est / a0` | 0,58 | 0,5 bis 2 |
+| Spearman-Rangkorrelation | 0,92 | über 0,6 |
+
+Beide Kriterien erfüllt. Nach Periode: unter 200 d 0,62 (ρ 0,87), 200–500 d 0,60 (0,88), 500–1.200 d 0,58 (0,87), über 1.200 d 0,35 (0,69: Bahn länger als die Messdauer, Amplitude wird unterschätzt). Nach Helligkeit: G < 10 0,53 (ρ 0,91), 10–13 0,55 (0,90), 13–16 0,60 (0,92), > 16 0,64 (0,91). Substellare Teilmenge (unter 80 M_Jup, 1.306): 0,63 (ρ 0,95).
+
+Die Amplitude wird im Median um etwa 40 % unterschätzt (Vorfaktor `sqrt(2)` für Kreisbahnen, Teile der Bahn gehen in den 5-Parameter-Fit). Damit werden die Begleitermassen zu klein und `P(m2 < 13 M_Jup)` zu groß geschätzt. Eine Korrektur ist nicht eingebaut (die Prüfung galt dem Feature wie definiert); sie wäre eine Manifest-Änderung. Die Validierung bleibt geschönt (starke Wackler, günstige Perioden), und die Bahnlösungen sind selbst die Sterne, deren Amplitude gut messbar ist.
+
+**Vorschau Liste 2** (Entwicklungslauf auf DR3, ohne Nachbar-Filter, bekannte Fälle ausgeschlossen): Score = Score von Modell A × `P(m2 < 13 M_Jup)`, nur `ms_offset < 0,2`. Die Top 100 überschneiden sich nur mit 3 Sternen mit den Top 100 von Liste 1, mittleres `P(m2 < 13)` = 1,0, Median `ms_offset` 0,04, 12 % mit DR3-Beschleunigungs-Lösung (Population 1,2 %), 2 % mit DR3-Bahnlösung. Liste 2 ist damit eine andere Liste als Liste 1. In den Top 1.000 von Liste 1 haben 37,6 % ein `P(m2 < 13) > 0,5`, 38,1 % ein `ms_offset < 0,2` und 13,9 % beides.
