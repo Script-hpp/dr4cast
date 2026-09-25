@@ -156,3 +156,11 @@ Ein Merkmal gilt als „nicht reproduziert“, wenn sein Median-Verhältnis auß
 **9. Test gegen den ID-Fehler** ist eingebaut (`tests/test_source_ids.py`, Commit 9c497d5): Jede Datei mit einer Spalte `*source_id` muss `BIGINT` (int64) sein, die Feature-Tabellen müssen dieselben IDs wie die Kataloge haben (kein Verlust, kein Rundungsfehler), und zwei Sterne mit 19-stelliger ID müssen unverändert vorhanden sein. Für die Simulation gilt derselbe Test für alle neuen Dateien (Teilung, Ergebnisse).
 
 **Rahmen (Erinnerung).** Die Simulation ist eine Zusatzauswertung. Liste 1, Liste 2, `MANIFEST.md` und `evaluate_bet.py` aus `v1.0` bleiben unverändert.
+
+### Korrektur der Regel für den Faktor `s` (2026-09-26, vor jeder Simulation)
+
+In den Ergänzungen (Punkt 3, „Angepasst werden darf nur“) stand, `s` werde an der Nullprobe gewählt. Das ist nicht möglich: Ein Stern ohne Begleiter wird mit demselben Fehler `σ` simuliert und gewichtet, `UWE = sqrt(Σ R² / σ² / (N − 5))` ist gegenüber einer Skalierung von `σ` unveränderlich. `s` wirkt nur auf das Verhältnis von Signal zu Rauschen bei Sternen mit Bahn. Deshalb gilt:
+
+- **(b) neu:** `s` wird am **Kalibrierteil von Check C** aus dem Raster {0,8; 0,9; 1,0; 1,1; 1,25; 1,5} gewählt: der Wert, für den der Betrag des Logarithmus vom Median des Verhältnisses `RUWE_sim,Median / RUWE_echt` am kleinsten ist (je Stern der Median über 20 Rausch-Realisierungen). Bei Gleichstand der Wert näher an 1,0. Die Nullprobe wird nicht zur Wahl von `s` benutzt; ihre Normierung `k(G)` bleibt (a).
+- Die Kriterien N, A, B und C bleiben wie festgelegt und werden mit dem gewählten `s` am Testteil bzw. an A und B ausgewertet.
+- Wegen dieser Skalen-Invarianz misst die Nullprobe nur, ob die simulierte Streuung des RUWE bei Einzelsternen zur echten passt; sie sagt nichts über die Höhe des Messfehlers.
