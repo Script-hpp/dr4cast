@@ -66,3 +66,15 @@ Nachtrag (gleicher Tag): Eigene Massenschätzung aus Thiele-Innes-Elementen, Par
 - **`dr2_neighbourhood`:** Der Download der Verknüpfung für den ganzen DR2-Nahsternkatalog war zu langsam (ca. 2,4 min pro Chunk, hochgerechnet ca. 8 Stunden) und wurde abgebrochen. Ersatz: Wir laden nur die Verknüpfungszeilen der DR3-Quellen mit `Orbital*`-Lösung (Upload der IDs ans Archiv, `download_dr2_links`). Sie genügen, um DR3-Ergebnisse an DR2-Sterne zu hängen.
 
 Anmerkung: DR2-Parallaxen haben einen kleinen systematischen Nullpunktversatz (einige hundertstel mas). Bei der Stichprobengrenze von 5 mas ist das vernachlässigbar (Grenze verschiebt sich um weniger als 1 %); wir korrigieren ihn nicht.
+
+## 2026-09-25 – RUWE-Kalibrierung DR3 (`calibration.py`)
+
+Verfahren: Median und 16/84-Perzentile von RUWE je Zelle aus G-Helligkeit (0,25 mag) und BP-RP (0,2 mag); Zellen mit weniger als 100 Sternen fallen auf den G-Streifen, dann auf den globalen Wert zurück. Kalibriert auf dem DR3-Nahsternkatalog selbst (5.228.166 Sterne mit RUWE und G); 900 Zellen, 70 G-Streifen. Features: `ruwe_expected`, `ruwe_excess`, `ruwe_z` (`data/processed/ruwe_features_dr3.parquet`). 5.215.484 Sterne nutzen eine Zelle, 12.328 den G-Streifen, 16.646 den globalen Wert (meist ohne BP-RP oder G).
+
+Ergebnis:
+- Der rohe RUWE hängt stark von der Helligkeit ab: Median 1,03 bei G = 6–10, 1,65 bei G = 18–20; 60 % der Sterne bei G = 18–20 haben RUWE > 1,4. Nach der Kalibrierung liegt der Median von `ruwe_z` in jedem G-Bereich bei 0,00 (Ausnahme: G < 4 mit 460 Sternen).
+- Anteil `ruwe_z > 3`: 4–13 % je Helligkeitsbereich (statt 12–60 % beim rohen RUWE > 1,4).
+- Signal: `Orbital`-Lösungen haben Median `ruwe_z` = 5,72 (74 % über 3). Die Treffer unter 80 M_Jup haben 2,75 (47 % über 3). Sie wackeln also erkennbar, aber ein großer Teil (53 %) fällt mit `ruwe_z` <= 3 nicht auf.
+- **Bekannte Planetensterne (NASA, DR3-ID, in der Stichprobe): Median `ruwe_z` = -0,03, 0,9 % über 3.** Sie unterscheiden sich in RUWE nicht von der Population. Die meisten sind per Transit oder Radialgeschwindigkeit entdeckt und wackeln für Gaia nicht messbar.
+
+Folgerung, offen: Ein Modell, das nur bekannte Planetensterne als Positive lernt (Manifest, Version 1), lernt kaum Wackel-Signal, weil dieses Label nicht mit RUWE zusammenhängt. Es besteht die Gefahr, dass es Helligkeit und Entfernung der Survey-Auswahl lernt (der Survey-Bias, den SHAP prüfen soll). Zu klären vor dem Training: (a) Label wie geplant und beobachten, (b) zusätzlich ein Modell direkt auf das Backtest-Ziel (DR3-Orbit-Lösung unter 80 M_Jup) trainieren, (c) Vergleich beider.
