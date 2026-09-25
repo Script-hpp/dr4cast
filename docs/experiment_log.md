@@ -78,3 +78,21 @@ Ergebnis:
 - **Bekannte Planetensterne (NASA, DR3-ID, in der Stichprobe): Median `ruwe_z` = -0,03, 0,9 % über 3.** Sie unterscheiden sich in RUWE nicht von der Population. Die meisten sind per Transit oder Radialgeschwindigkeit entdeckt und wackeln für Gaia nicht messbar.
 
 Folgerung, offen: Ein Modell, das nur bekannte Planetensterne als Positive lernt (Manifest, Version 1), lernt kaum Wackel-Signal, weil dieses Label nicht mit RUWE zusammenhängt. Es besteht die Gefahr, dass es Helligkeit und Entfernung der Survey-Auswahl lernt (der Survey-Bias, den SHAP prüfen soll). Zu klären vor dem Training: (a) Label wie geplant und beobachten, (b) zusätzlich ein Modell direkt auf das Backtest-Ziel (DR3-Orbit-Lösung unter 80 M_Jup) trainieren, (c) Vergleich beider.
+
+## 2026-09-25 – Erreichbarkeit der Backtest-Ziele in DR2-Begriffen
+
+DR2↔DR3-Verknüpfung (`dr2_neighbourhood`, über TAP-Upload für alle 135.760 DR3-Quellen mit `Orbital*`-Lösung): 138.139 Zeilen, 2.336 Quellen mit mehreren DR2-Kandidaten. Auflösung: kleinster Winkelabstand.
+
+`Orbital`-Ziele mit `m1`:
+
+| Stufe | unter 80 M_Jup | unter 13 M_Jup |
+|---|---|---|
+| alle | 1.503 | 17 |
+| in der DR3-Stichprobe (Parallaxe >= 5 mas) | 1.306 | 17 |
+| DR2-Gegenstück gefunden | 1.503 | 17 |
+| DR2-Gegenstück in der DR2-Stichprobe (DR2-Parallaxe >= 5 mas) | 1.304 | 17 |
+| DR2 `parallax_over_error >= 10` | 1.304 | 17 |
+
+Die Recall-Basis im Backtest ist 1.304 (bzw. 17). Die Sorge, die DR2-Stichprobe verliere viele Wackelsterne, bestätigt sich für die Ziele kaum: Nur zwei bis drei der 1.306 gehen verloren, und alle Ziele bestehen den DR2-Filter. Die DR2-Parallaxe der Ziele ist offenbar meist gut genug. Für die restlichen 199 Ziele gilt weiter: Parallaxe unter 5 mas.
+
+Offen für Liste 2: Der Kiefer-et-al.-Katalog (A&A 702, A77, 2025; 9.698 Kandidaten, G < 16, Begleiter unter 13,5 M_Jup, 1–3 AE) ist vermutlich über Zenodo (Anhänge als PDF) und/oder VizieR erhältlich. Ob eine maschinenlesbare Tabelle existiert, ist nicht bestätigt (VizieR-Suche ohne Treffer).

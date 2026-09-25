@@ -33,7 +33,8 @@ Stand: 2026-09-25. Erledigt: DR3-Hauptkatalog (Download läuft), NSS-Tabellen, N
 ### Liste 2 (unter 13 M_Jup): Amplituden-Feature
 - Aus `ruwe_excess` die Photozentrum-Amplitude abschätzen und an den DR3-`Orbital`-Lösungen validieren (bekannte Amplitude `a0`); Mindestgüte vorher im Log festlegen.
 - Daraus mit Sternmasse und Parallaxe `P(m2 < 13 M_Jup)`.
-- Kiefer-et-al.-Katalog für das Leaderboard beschaffen (Verfügbarkeit prüfen).
+- Kiefer-et-al.-Katalog für das Leaderboard beschaffen; Verfügbarkeit maschinenlesbar prüfen (VizieR, Zenodo). GaiaPMEX-Methode als Vorlage und Gegenprobe für das Amplituden-Feature.
+- Sternmassen für alle Sterne: FLAME (`astrophysical_parameters`, nur Wette) und Masse-Helligkeits-Beziehung (Backtest mit DR2-Photometrie).
 
 ## 5. Erklärbarkeit und Bias
 - SHAP: Dominieren Helligkeit und Entfernung statt der Wackel-Features?

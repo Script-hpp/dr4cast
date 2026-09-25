@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.9
+**Version:** 0.10
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -56,10 +56,12 @@ Rohdaten bleiben vollständig erhalten; gefiltert wird erst beim Aufbereiten. Gr
 - **Liste 1 (unter 80 M_Jup):** Top 100 nach der Wahrscheinlichkeit `P(substellar)` aus Modell A. Im Backtest validiert (1.306 erreichbare Treffer).
 - **Liste 2 (unter 13 M_Jup, Planetenliste):** Top 100 nach `P(substellar) × P(m2 < 13 M_Jup)`. Die zweite Wahrscheinlichkeit kommt aus einem zusätzlichen Feature: Aus `ruwe_excess` wird die Wackel-Amplitude abgeleitet, daraus mit Sternmasse und Parallaxe der Bereich möglicher Begleitermassen (Prinzip wie Kiefer et al. 2025).
 - Beide Listen: Hauptmetrik „nur neue Treffer“ (siehe oben), beide werden vor dem Release eingefroren, beide werden berichtet.
-- Der Kandidatenkatalog von Kiefer et al. (2025) kommt als zusätzlicher Vergleich für Liste 2 ins Leaderboard, sofern er öffentlich verfügbar ist.
+- Der Kandidatenkatalog von Kiefer et al. (2025, A&A 702, A77: 9.698 Kandidaten) kommt als zusätzlicher Vergleich für Liste 2 ins Leaderboard, sofern er maschinenlesbar verfügbar ist. Er hat andere Grenzen als wir und wird so vermerkt: Quellen mit G < 16, Begleiter unter 13,5 M_Jup, Bahnabstände 1–3 AE.
 
 Vor dem Einfrieren zu klären (Teil des Manifests):
-- Die Ableitung Amplitude → Massenbereich ist neu und wird an den DR3-Bahnlösungen validiert (dort ist die Amplitude bekannt): Wie gut sagt `ruwe_excess` die Photozentrum-Amplitude voraus? Erfüllt sie die im Log festgelegte Mindestgüte nicht, gilt der Rückfall: Liste 2 = Top 100 nach `P(substellar)` unter Sternen mit geschätzter Amplitude im Planetenbereich, ohne Wahrscheinlichkeitsprodukt. Die Mindestgüte wird vor der ersten Auswertung im Log festgelegt.
+- Die Ableitung Amplitude → Massenbereich ist neu. Sie wird gegen die Methode GaiaPMEX von Kiefer et al. (2025) geprüft (Masse und Bahnabstand aus RUWE, optional mit Hipparcos-Gaia-Bewegungsanomalie) und an den DR3-Bahnlösungen validiert, wo die Amplitude bekannt ist. Die Mindestgüte wird vor der ersten Auswertung im Log festgelegt. Die Validierung an den Bahnlösungen ist geschönt: Diese Sterne wackeln stark und haben Perioden im günstigen Bereich. Dass das Feature dort funktioniert, sagt nicht, dass es bei schwachen Signalen genauso gut ist.
+- **Rückfallregel (unabhängig vom Amplituden-Feature):** Erfüllt das Feature die Mindestgüte nicht, ist Liste 2 die Top 100 nach `P(substellar)` unter nahen, leichten Sternen: Sternmasse unter 0,6 Sonnenmassen und Entfernung unter 100 pc. Das benutzt nur die Physik (leichte, nahe Sterne zeigen den Planeten-Wackel am stärksten), keine Größe aus der Amplitudenrechnung.
+- **Sternmasse für alle Sterne** (nicht nur für Sterne mit NSS-Lösung): In der Wette FLAME-Massen aus `gaiadr3.astrophysical_parameters`, bei Lücken eine Masse-Helligkeits-Beziehung (Herkunft markiert). Im Backtest nur die Masse-Helligkeits-Beziehung mit DR2-Photometrie, weil FLAME ein DR3-Produkt ist und sonst Wissen aus der Zukunft einfließt.
 - **Grenze:** Liste 2 ist im Backtest mit nur 17 Treffern kaum validierbar. Sie ist bewusst eine Wette ins Unbekannte.
 
 ### „Neue Treffer“ in der Wette
@@ -147,3 +149,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.7 | 2026-09-25 | Hauptmodell A = Transfer (DR2-Features → DR3-Ziel, angewendet auf DR3-Features → DR4); NASA-Label-Modelle als Vergleich (B, B'); NSS-Lösungstyp in A kein Feature | Bekannte Planetensterne haben `ruwe_z` −0,03 (nicht von der Population unterscheidbar), das Label enthält kein Wackel-Signal; Entscheidung vor dem ersten Training und unabhängig vom Backtest-Ergebnis |
 | 0.8 | 2026-09-25 | Wette: „neue Treffer“ schließt Sterne mit DR3-Bahnlösung unter 80 M_Jup und bekannte Planetensterne aus; Markierung statt Streichung in der eingefrorenen Liste | In DR3 gibt es schon über tausend solcher Sterne, sie wären Treffer ohne Vorhersage |
 | 0.9 | 2026-09-25 | Wette mit zwei gleichrangigen Listen (unter 80 M_Jup und unter 13 M_Jup); Liste 2 mit Massenwahrscheinlichkeit aus `ruwe_excess`; Rückfallregel bei ungenügender Validierung | Modell A wird auf unter 80 M_Jup trainiert (1.306 Treffer); das Planetenziel unter 13 M_Jup (17 Treffer) bleibt als eigene Liste erhalten |
+| 0.10 | 2026-09-25 | Rückfallregel für Liste 2 unabhängig vom Amplituden-Feature (Sternmasse < 0,6 M_sun, unter 100 pc); Herkunft der Sternmassen (FLAME / Masse-Helligkeits-Beziehung, im Backtest nur DR2-Photometrie); GaiaPMEX als Vergleich; Grenze der Validierung an Bahnlösungen | Die alte Rückfallregel war zirkulär (dieselbe Rechnung wie das Feature) |
