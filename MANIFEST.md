@@ -1,7 +1,7 @@
 # Manifest – Gaia Wobble Bet
 
 **Status:** Entwurf (lebendes Dokument)
-**Version:** 0.18
+**Version:** 0.19
 **Eingefroren am:** – (noch nicht)
 
 ## Wie dieses Dokument funktioniert
@@ -134,7 +134,7 @@ Asymmetrie, die im Bericht stehen muss: Die Liste von Sahlmann & Gómez besteht 
 
 Alle Methoden werden im Backtest und später bei DR4 mit denselben Ausschlüssen ausgewertet und jeweils **einmal mit und einmal ohne Nachbar-Filter** (2", im Katalog des Ausgangsreleases; Nachbarn werden für die obersten 3.000 Sterne jeder Methode abgefragt, das genügt für P@100 und P@1000).
 
-1. **Handgebaute Regel ohne ML** (`rule_based`): Sterne mit `ruwe_z > τ` und `wobble_ratio < 1`, sortiert nach `ruwe_z` absteigend (Nachbar-Filter wie oben). τ wird im Backtest aus {2, 3, 4, 5, 6, 8} gewählt: die kleinste Schwelle mit dem größten P@1000 (mit Nachbar-Filter, Ziel `y80`, alle Treffer), danach festgeschrieben.
+1. **Handgebaute Regel ohne ML** (`rule_based`): Sterne mit `ruwe_z > τ` und `wobble_ratio < 1`, sortiert nach `ruwe_z` absteigend (Nachbar-Filter wie oben). τ wird im Backtest aus {2, 3, 4, 5, 6, 8} gewählt: die kleinste Schwelle mit dem größten P@1000 (mit Nachbar-Filter, Ziel `y80`, alle Treffer), danach festgeschrieben. **Festgeschrieben: τ = 2** (im Backtest hatte die Regel für jede Schwelle 0 Treffer in den Top 1.000, die Vorgabe „kleinste Schwelle mit dem größten P@1000“ ergibt dann die kleinste, τ = 2).
 2. **Logistische Regression** (`logreg`) mit denselben 9 Merkmalen wie Modell A: fehlende Werte durch den Median ersetzt, an den Perzentilen 0,5 und 99,5 des Trainingsteils gekappt, standardisiert, `C = 0,1`, ausgeglichene Klassengewichte; gleiches Protokoll wie Modell A (regionale Aufteilung, Negative 1:50).
 3. **HGCA-Liste** (`hgca`): Sterne mit HGCA-Werten, sortiert nach der Signifikanz der Beschleunigung `hg_sig_gaia` absteigend (im Backtest die HGCA-Version auf DR2-Basis, bei DR4 die EDR3-Version). Verglichen wird nur auf der Teilmenge der Sterne mit HGCA-Werten: HGCA-Liste gegen Modell A und die Baselines, alle nur auf diesen Sternen; zusätzlich die Abdeckung (Anteil der Ziele mit HGCA-Werten).
 4. **Konfidenzintervalle:** Bootstrap über HEALPix-Level-2-Zellen (192 Zellen, Ziehen mit Zurücklegen), 95-%-Intervall aus den Perzentilen 2,5 und 97,5, für P@100, P@1000 und Average Precision; im Backtest im Entwicklungslauf mit 200, in der endgültigen Auswertung mit 1.000 Wiederholungen.
@@ -214,3 +214,4 @@ Grenzen des Backtests (nicht überinterpretieren):
 | 0.16 | 2026-09-25 | Auswertungsskript und seine Entscheidungen (Verknüpfung, Ziele, Ausschlüsse, Schema-Anpassung) festgeschrieben | Sonst würden diese Entscheidungen erst nach dem Release fallen |
 | 0.17 | 2026-09-25 | Konkurrenz-Listen (ExoDNN, Kiefer et al., Sahlmann & Gómez) beschafft, mit Prüfsumme abgelegt, Ordnungsregeln und Vergleichsbedingungen festgelegt | Vor dem Release festlegen, sonst wirken Ordnung und Auswahl nachträglich gewählt |
 | 0.18 | 2026-09-25 | Zusatz-Benchmarks (handgebaute Regel, logistische Regression, HGCA-Liste), Bootstrap über HEALPix-Zellen, Auswertung mit und ohne Nachbar-Filter, Zahl der Sterne ohne Verknüpfung, eigene Metrik für Sahlmann & Gómez | Vor den Ergebnissen festgelegt, damit sie nicht nachträglich gewählt wirken |
+| 0.19 | 2026-09-25 | Schwelle der handgebauten Regel festgeschrieben (τ = 2) | Ergebnis der im Manifest 0.18 festgelegten Auswahlregel im Backtest |

@@ -13,12 +13,21 @@ HEIDELBERG = "https://gaia.ari.uni-heidelberg.de/tap"
 RADIUS_ARCSEC = 2.0
 
 
-def neighbours(df: pd.DataFrame) -> pd.Series:
+def neighbours(df: pd.DataFrame, batch: int = 3000) -> pd.Series:
+    """Neighbour counts within 2" from Gaia DR2; long uploads hang on the server, so the query runs in batches."""
+    parts = []
+    for i in range(0, len(df), batch):
+        parts.append(_neighbours_batch(df.iloc[i : i + batch]))
+        print(f"  neighbours: {min(i + batch, len(df))}/{len(df)}", flush=True)
+    return pd.concat(parts)
+
+
+def _neighbours_batch(df: pd.DataFrame) -> pd.Series:
     t = Table({"source_id": df.source_id.to_numpy("int64"), "ra": df.ra.to_numpy(float), "dec": df.dec.to_numpy(float)})
     q = f"""SELECT u.source_id, count(*) AS n FROM TAP_UPLOAD.ids u
             JOIN gaiadr2.gaia_source g ON 1 = CONTAINS(POINT('ICRS', g.ra, g.dec), CIRCLE('ICRS', u.ra, u.dec, {RADIUS_ARCSEC / 3600}))
             WHERE g.source_id <> u.source_id GROUP BY u.source_id"""
-    r = run_async(q, uploads={"ids": t}, url=HEIDELBERG, wall_clock=900).to_pandas().set_index("source_id").n
+    r = run_async(q, uploads={"ids": t}, url=HEIDELBERG, wall_clock=300).to_pandas().set_index("source_id").n
     return df.source_id.map(r).fillna(0).astype(int)
 
 

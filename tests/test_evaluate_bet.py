@@ -34,6 +34,17 @@ def test_ms_condition():
     assert o.y13 and not o.y13_ms and not o.y80_ms
 
 
+def test_unlinked_and_set_metric():
+    links = pd.DataFrame({"a": [1, 2], "b": [10, 20], "angular_distance": [0.1, 0.1], "magnitude_difference": [0, 0]})
+    r = eb.unlinked_report(pd.Series([1, 2, 3, 3]), links, "a")
+    assert r == {"n": 3, "unlinked": 1, "share_unlinked": 1 / 3}
+    out = pd.DataFrame({"source_id": [1, 2, 3], "y80": [True, False, True]})
+    m = eb.set_hit_rate(pd.Series([1, 2, 99]), out, pd.Series([1, 2, 3]))
+    assert m == {"members_in_population": 2, "hits": 1, "hit_rate": 0.5}
+    scores = pd.Series([0.9, 0.5, 0.1], index=[1, 2, 3])
+    assert eb.top_k_hit_rate(scores, out, 2) == {"k": 2, "hits": 1, "hit_rate": 0.5}
+
+
 @pytest.mark.skipif(not (PROCESSED / "oof_physics_dr2.parquet").exists(), reason="backtest data not built")
 def test_dry_run_reproduces_logged_numbers():
     """The frozen script must give the numbers already in docs/experiment_log.md (physics variant, target < 80 M_Jup)."""

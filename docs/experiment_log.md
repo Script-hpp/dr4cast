@@ -362,3 +362,41 @@ Die Population liegt um 4 Sterne über der bisherigen (2.304.869): Das Skript sc
 **Beobachtung zu Liste 2:** Der Median von `P(m2 < 13)` liegt in den Top 100 bei 1,0. Der Faktor ist dort fast immer ausgereizt und wirkt eher als Filter denn als Gewichtung; die Reihenfolge innerhalb der Liste bestimmt fast allein `P_A`. Die Amplituden-Verzerrung von etwa 40 % (Amplitude zu klein, `P(m2 < 13)` zu groß) verstärkt das. Keine Änderung, aber im Bericht so zu beschreiben. Für die Top 100 heißt das: Liste 2 ist Liste 1 auf Sternen mit `ms_offset < 0,2` und kleiner Wackel-Amplitude, sortiert nach `P_A`.
 
 Noch nicht enthalten: Konkurrenz-Listen (nicht beschafft), Nachbar-Ausschluss für die Baselines im Probelauf (Nachbarn für alle Sterne des Backtest lagen nicht vor; für die Baselines der echten Auswertung wird der Pool wie bei den Listen abgefragt).
+
+## 2026-09-25 – Zusatz-Benchmarks im Backtest DR2→DR3 (`benchmarks.py`, Regeln aus Manifest 0.18)
+
+Population 2.304.873 Sterne (DR2, `parallax_over_error >= 10`), Ziel `y80` (1.304 Treffer) und `y13_ms` (4 Treffer). Nachbarn (Gaia DR2, 2") für die obersten 3.000 Sterne jeder Methode, 19.201 Sterne abgefragt (die erste, ungestückelte Abfrage blieb nach 12 Minuten auf dem Server hängen und wurde durch Stücke zu 3.000 ersetzt; sie brauchte 4 Minuten). „Nur neue Treffer“ (bekannte Planetensterne aus der Liste entfernt).
+
+**Treffer in den Top 100 / Top 1.000, ohne und mit Nachbar-Filter (Ziel `y80`):**
+
+| Methode | Top 100 ohne | Top 100 mit | Top 1.000 ohne | Top 1.000 mit |
+|---|---|---|---|---|
+| Modell A (Liste 1) | 15 | 16 | 93 | 107 |
+| Modell A, Liste 2 (`ms_offset < 0,2`, mal `P(m2 < 13)`) | 2 | 3 | 38 | 45 |
+| logistische Regression | 0 | 0 | 0 | 0 |
+| handgebaute Regel | 0 | 0 | 0 | 0 |
+| `ruwe_z` | 0 | 0 | 0 | 0 |
+| RUWE | 0 | 0 | 0 | 0 |
+
+Ziel `y13_ms` (4 Treffer): Liste 2 hat 2 Treffer in den Top 1.000 (ohne und mit Filter), alle anderen Methoden 0, in den Top 100 haben alle 0. Der Nachbar-Filter erhöht die Treffer von Modell A in den Top 1.000 von 93 auf 107 und in den Top 100 von 15 auf 16: Er entfernt Fehlalarme und lässt Platz für weitere Sterne.
+
+**Handgebaute Regel:** Die Auswahlregel für τ (kleinste Schwelle mit dem größten P@1000) ergab für alle Schwellen aus {2, 3, 4, 5, 6, 8} 0 Treffer; damit gilt τ = 2 (Manifest 0.19). Die Regel („`ruwe_z` > τ, `wobble_ratio` < 1, sortiert nach `ruwe_z`“) findet in den Top 1.000 keinen Treffer: Die obersten Plätze der `ruwe_z`-Sortierung sind auch unter `wobble_ratio < 1` extreme Wackler, keine Ziele.
+
+**Logistische Regression:** Average Precision 0,003–0,004 gegenüber 0,034–0,046 bei Modell A (Basisrate 0,00057). Sie schlägt die Baselines bei der Average Precision (0,0016–0,0020 für `ruwe_z`), aber ohne Treffer in den Top 1.000. Das nichtlineare Fenster („auffällig, aber nicht zu stark“) lässt sich mit einem linearen Modell auf diesen Merkmalen nicht darstellen; das ist eine Deutung, nicht getestet.
+
+**HGCA-Teilmenge** (Sterne mit HGCA-Werten, 49.499 Sterne): enthält nur 16 der 1.304 Ziele (1,2 %). Auf dieser Menge: HGCA-Liste AUC 0,625, Average Precision 0,0004 (kein Treffer in den Top 100); Modell A AUC 0,926, Average Precision 0,029, 2 Treffer in den Top 100; `ruwe_z` AUC 0,785, RUWE 0,812, logistische Regression 0,578, handgebaute Regel 0,374. Mit 16 Zielen ist der Vergleich eine Tendenz; die HGCA-Beschleunigung trägt für dieses Ziel nichts bei.
+
+**Bootstrap** (Himmelszellen HEALPix Level 2, 192 Zellen, 200 Wiederholungen, 95-%-Intervall, alle Treffer, ohne Nachbar-Filter):
+
+| Methode | P@100 | P@1000 | AP |
+|---|---|---|---|
+| Modell A | 0,09–0,23 | 0,077–0,115 | 0,034–0,046 |
+| Modell A, Liste 2 | 0,00–0,05 | 0,026–0,051 | 0,010–0,020 |
+| logistische Regression | 0–0 | 0–0 | 0,0030–0,0038 |
+| handgebaute Regel | 0–0 | 0–0 | 0,0023–0,0029 |
+| `ruwe_z` | 0–0 | 0–0 | 0,0016–0,0020 |
+| RUWE | 0–0 | 0–0 | 0,0010–0,0016 |
+
+Die Intervalle von Modell A und den Baselines überlappen nicht (P@1000, Average Precision); der Unterschied ist also größer als die räumliche Streuung. Die Intervalle für Liste 2 liegen unter denen von Liste 1, wie erwartet (kleinere Zielmenge, andere Sterne).
+
+**Nicht getestet im Backtest:** Die Metrik für Sahlmann & Gómez, die Konkurrenz-Listen und die Zahl der Sterne ohne Verknüpfung (`unlinked_report`): Sie gelten für die Auswertung DR3→DR4 und sind mit Tests im Auswertungsskript hinterlegt.

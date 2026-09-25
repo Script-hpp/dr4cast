@@ -181,6 +181,31 @@ def competitor_coverage() -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
+# ---------------------------------------------------------------- links without match, and the metric for an unordered set
+
+def unlinked_report(list_ids: pd.Series, links: pd.DataFrame, src: str) -> dict:
+    """How many stars of a list have no link to the later release (they count as negative, but the number goes into the report)."""
+    linked = set(links[src])
+    ids = pd.Series(list_ids).drop_duplicates()
+    n_un = int((~ids.isin(linked)).sum())
+    return {"n": len(ids), "unlinked": n_un, "share_unlinked": n_un / max(len(ids), 1)}
+
+
+def set_hit_rate(members: pd.Series, outcomes: pd.DataFrame, population_ids: pd.Series, target: str = "y80") -> dict:
+    """Metric for an unordered list (Sahlmann & Gomez, MANIFEST): hits divided by the members inside our population."""
+    m = pd.Series(members).drop_duplicates()
+    m = m[m.isin(set(population_ids))]
+    y = outcomes.set_index("source_id")[target].reindex(m).fillna(False).astype(bool)
+    return {"members_in_population": len(m), "hits": int(y.sum()), "hit_rate": float(y.mean()) if len(m) else float("nan")}
+
+
+def top_k_hit_rate(scores: pd.Series, outcomes: pd.DataFrame, k: int, target: str = "y80") -> dict:
+    """Hit rate of our own top-k for the comparison with an unordered set of size k."""
+    top = scores.dropna().sort_values(ascending=False, kind="stable").head(k).index
+    y = outcomes.set_index("source_id")[target].reindex(top).fillna(False).astype(bool)
+    return {"k": k, "hits": int(y.sum()), "hit_rate": float(y.mean())}
+
+
 def to_markdown(res: dict) -> str:
     lines = [f"population {res['population']:,}; targets {res['targets']}"]
     for name, r in res["results"].items():
