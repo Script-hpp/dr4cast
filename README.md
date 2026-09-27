@@ -6,14 +6,17 @@ Gaia DR4 is planned for **2 December 2026** (ESA). It rests on 66 months of data
 new astrometric orbit solutions. dr4cast trains a model on older data, publishes a ranked list of DR3 stars with a timestamp
 *before* the release, and then checks it openly against DR4 and against simple baselines and published methods.
 
-![status](https://img.shields.io/badge/status-release%20candidate%20v1-orange)
+![status](https://img.shields.io/badge/status-frozen%20v1.0-brightgreen)
 ![code](https://img.shields.io/badge/code-MIT-blue)
 ![lists](https://img.shields.io/badge/lists-CC%20BY%204.0-lightgrey)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22968734.svg)](https://doi.org/10.5281/zenodo.22968734)
 
 > **Status:** frozen. The lists in [`release/v1/`](release/v1), [`MANIFEST.md`](MANIFEST.md) (version 0.19) and the evaluation script
-> [`evaluate_bet.py`](src/gaia_wobble/evaluate_bet.py) are fixed by the GitHub release `v1.0` (2026-09-25); the Zenodo record and its DOI
-> will be added here. Until DR4 only clarifications and the schema adaptations allowed by the manifest are made, see
-> [`docs/clarifications_v1.md`](docs/clarifications_v1.md) (including the rule for the primary mass `m1`).
+> [`evaluate_bet.py`](src/gaia_wobble/evaluate_bet.py) are fixed by the GitHub release `v1.0` (2026-09-25, [Zenodo DOI
+> 10.5281/zenodo.22968735](https://doi.org/10.5281/zenodo.22968735)). The clarification release `v1.0.1` (2026-09-26) changed no list, no
+> manifest text and no evaluation code ([Zenodo DOI 10.5281/zenodo.22968838](https://doi.org/10.5281/zenodo.22968838)). The concept DOI
+> above always resolves to the latest version. Until DR4 only further clarifications and the schema adaptations allowed by the manifest
+> are made, see [`docs/clarifications_v1.md`](docs/clarifications_v1.md) (including the rule for the primary mass `m1`).
 
 ## The idea in one minute
 
@@ -131,4 +134,4 @@ The comparison lists are not part of this repository: only the download script a
 
 Code: MIT, lists and documentation: CC BY 4.0. Copyright (c) 2026 Onuralp Akca. See [`LICENSE`](LICENSE) and [`LICENSE-DATA.md`](LICENSE-DATA.md).
 
-Citation: Onuralp Akca, *dr4cast: a pre-registered forecast of Gaia DR4 substellar companions*, 2026, Zenodo DOI to follow.
+Citation: Onuralp Akca, *dr4cast: a pre-registered forecast of Gaia DR4 substellar companions*, 2026, Zenodo, <https://doi.org/10.5281/zenodo.22968734> (concept DOI, all versions; the frozen predictions are version v1.0, <https://doi.org/10.5281/zenodo.22968735>). Machine-readable: [`CITATION.cff`](CITATION.cff).
